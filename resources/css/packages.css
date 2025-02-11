@@ -1,0 +1,147 @@
+/* Grid background */
+.bg-grid-white {
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='1' fill='white'/%3E%3C/svg%3E");
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Tooltips */
+.tooltip {
+    position: relative;
+}
+
+.tooltip:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    padding: 4px 8px;
+    background-color: #1f2937;
+    color: white;
+    font-size: 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.tooltip:hover:before {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Custom scrollbar */
+.overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E0 #EDF2F7;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #EDF2F7;
+    border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background-color: #CBD5E0;
+    border-radius: 3px;
+}
+
+/* Active filter button */
+.filter-btn.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+}
+
+/* Status badge animations */
+.status-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+}
+
+.status-badge::before {
+    content: '';
+    @apply w-2 h-2 mr-2 rounded-full;
+}
+
+.status-badge.delivered {
+    @apply bg-green-100 text-green-800;
+}
+
+.status-badge.delivered::before {
+    @apply bg-green-400;
+}
+
+.status-badge.in-transit {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.status-badge.in-transit::before {
+    @apply bg-yellow-400 animate-pulse;
+}
+
+.status-badge.pending {
+    @apply bg-gray-100 text-gray-800;
+}
+
+.status-badge.pending::before {
+    @apply bg-gray-400;
+}
+
+/* Toast notifications */
+.toast {
+    @apply fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white transform transition-all duration-300;
+}
+
+.toast-success {
+    @apply bg-green-500;
+}
+
+.toast-error {
+    @apply bg-red-500;
+}
+
+.toast-info {
+    @apply bg-blue-500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .overflow-x-auto {
+        margin: 0 -1rem;
+    }
+
+    .tooltip:before {
+        display: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .print-break-inside {
+        break-inside: avoid;
+    }
+}

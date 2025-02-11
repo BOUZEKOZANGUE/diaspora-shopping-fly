@@ -28,6 +28,12 @@ class Package extends Model
         return $this->hasMany(Tracking::class);
     }
 
+    // Get the recipient that owns the package.
+    public function recipient()
+    {
+        return $this->hasOne(Recipient::class);
+    }
+
    /**
     * Get the user that owns the package.
     */
