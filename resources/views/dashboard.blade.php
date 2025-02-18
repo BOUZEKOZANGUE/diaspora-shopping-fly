@@ -10,21 +10,21 @@
                 <p class="text-[#0077be]/70 text-sm md:text-base mt-1">Bienvenue sur votre espace personnel</p>
             </div>
             <div class="flex space-x-4 animate-fade-in">
-                <a href="#"
+                {{-- <a href="#"
                     class="inline-flex items-center px-4 py-2 bg-white border border-[#0077be] text-[#0077be] rounded-lg hover:bg-[#0077be]/5 transition-all duration-300">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6h16M4 12h16m-7 6h7" />
                     </svg>
                     Filtrer
-                </a>
-                <a href="{{ route('packages.create') }}"
+                </a> --}}
+                {{-- <a href="{{ route('packages.create') }}"
                     class="inline-flex items-center px-6 py-2.5 bg-[#ffd700] text-[#0077be] font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Nouveau colis
-                </a>
+                </a> --}}
             </div>
         </div>
     </x-slot>
