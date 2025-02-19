@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Notifications\ColisConfirmation;
 
 class ShipmentController extends Controller
 {
@@ -70,9 +71,6 @@ class ShipmentController extends Controller
     /**
      * Affiche le formulaire de création pour client existant
      */
-    /**
-     * Affiche le formulaire de création pour client existant
-     */
     public function createForExisting()
     {
         // Récupérer les utilisateurs avec pagination
@@ -86,54 +84,50 @@ class ShipmentController extends Controller
     /**
      * Recherche des utilisateurs pour l'autocomplétion
      */
-    /**
- * Recherche des utilisateurs pour l'autocomplétion
- */
-public function searchUsers(Request $request)
-{
-    $term = trim($request->input('term'));
+    public function searchUsers(Request $request)
+    {
+        $term = trim($request->input('term'));
 
-    if (empty($term)) {
-        return response()->json([
-            'results' => []
-        ]);
+        if (empty($term)) {
+            return response()->json([
+                'results' => []
+            ]);
+        }
+
+        try {
+            $users = User::where('name', 'LIKE', $term . '%')
+                ->orWhere('email', 'LIKE', '%' . $term . '%')
+                ->orWhere('phone', 'LIKE', $term . '%')
+                ->orWhere(function($query) use ($term) {
+                    $terms = explode(' ', $term);
+                    foreach($terms as $t) {
+                        $query->orWhere('name', 'LIKE', '%' . $t . '%');
+                    }
+                })
+                ->select(['id', 'name', 'email', 'phone'])
+                ->orderBy('name')
+                ->limit(10)
+                ->get()
+                ->map(function($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $user->phone,
+                    ];
+                });
+
+            return response()->json([
+                'results' => $users
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur recherche utilisateurs: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Erreur lors de la recherche'
+            ], 500);
+        }
     }
-
-    try {
-        $users = User::where('name', 'LIKE', $term . '%')
-            ->orWhere('email', 'LIKE', '%' . $term . '%')
-            ->orWhere('phone', 'LIKE', $term . '%')
-            ->orWhere(function($query) use ($term) {
-                $terms = explode(' ', $term);
-                foreach($terms as $t) {
-                    $query->orWhere('name', 'LIKE', '%' . $t . '%');
-                }
-            })
-            ->select(['id', 'name', 'email', 'phone'])
-            ->orderBy('name')
-            ->limit(10)
-            ->get()
-            ->map(function($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    //'avatar' => strtoupper(substr($user->name, 0, 2))
-                ];
-            });
-
-        return response()->json([
-            'results' => $users
-        ]);
-
-    } catch (\Exception $e) {
-        \Log::error('Erreur recherche utilisateurs: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'Erreur lors de la recherche'
-        ], 500);
-    }
-}
 
     /**
      * Enregistre un nouveau client et son colis
@@ -178,9 +172,7 @@ public function searchUsers(Request $request)
             // Création du colis
             $package = $this->createPackage($user->id, $validated);
 
-            DB::commit();
-
-            session()->flash('shipment_created', [
+            $shipmentData = [
                 'user' => [
                     'name' => $user->name,
                     'email' => $dsfEmail,
@@ -198,7 +190,56 @@ public function searchUsers(Request $request)
                     'weight' => $package->weight,
                     'description' => $package->description_colis
                 ]
-            ]);
+            ];
+
+            session()->flash('shipment_created', $shipmentData);
+
+            DB::commit();
+
+            // Envoyer la notification par email
+            try {
+                $user->notify(new ColisConfirmation($shipmentData));
+            } catch (\Exception $e) {
+                \Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
+                // Continuer malgré l'erreur d'email
+            }
+
+            try {
+                // Générer le PDF pour WhatsApp
+                $isNewUser = true; // C'est un nouvel utilisateur
+                $view = 'admin.shipments.pdf.pdf-new-user';
+                $pdfFile = $this->generatePdfForWhatsApp($shipmentData, $view);
+
+                // Stocker le chemin et le nom du fichier PDF dans la session
+                session()->flash('pdf_path', $pdfFile);
+                session()->flash('pdf_filename', basename($pdfFile));
+
+                // Créer le message WhatsApp (sans emojis ou caractères spéciaux)
+                $whatsappMessage = "DSF Express - Confirmation d'expedition\n\n" .
+                    "Bonjour " . $user->name . ",\n\n" .
+                    "Votre colis a ete enregistre avec succes.\n" .
+                    "Numero de suivi: " . $package->tracking_number . "\n" .
+                    "Prix: " . number_format($package->price, 2) . " EUR\n" .
+                    "Poids: " . $package->weight . " kg\n\n" .
+                    "Destination: " . str_replace("\n", " ", $validated['destination_address']) . "\n\n" .
+                    "Pour suivre votre colis, visitez:\n" .
+                    url('/tracking/' . $package->tracking_number);
+
+                // Ajouter les identifiants pour les nouveaux utilisateurs
+                $whatsappMessage .= "\n\nVos identifiants de connexion:\n" .
+                    "Email: " . $dsfEmail . "\n" .
+                    "Mot de passe: " . $defaultPassword;
+
+                // Encoder proprement pour URL
+                $whatsappMessage = rawurlencode($whatsappMessage);
+
+                // Stocker le lien WhatsApp dans la session (sans le lien du PDF)
+                $whatsappLink = "https://wa.me/" . $this->formatPhoneForWhatsApp($user->phone, $validated['country']) . "?text=" . $whatsappMessage;
+                session()->flash('whatsapp_link', $whatsappLink);
+            } catch (\Exception $e) {
+                \Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
+                // Continuer sans le PDF pour WhatsApp
+            }
 
             return redirect()->route('admin.shipments.success');
 
@@ -245,9 +286,7 @@ public function searchUsers(Request $request)
             // Création du colis
             $package = $this->createPackage($user->id, $validated);
 
-            DB::commit();
-
-            session()->flash('shipment_created', [
+            $shipmentData = [
                 'user' => [
                     'name' => $user->name,
                     'email' => $user->email,
@@ -264,7 +303,51 @@ public function searchUsers(Request $request)
                     'weight' => $package->weight,
                     'description' => $package->description_colis
                 ]
-            ]);
+            ];
+
+            session()->flash('shipment_created', $shipmentData);
+
+            DB::commit();
+
+            // Envoyer la notification par email
+            try {
+                $user->notify(new ColisConfirmation($shipmentData));
+            } catch (\Exception $e) {
+                \Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
+                // Continuer malgré l'erreur d'email
+            }
+
+            try {
+                // Générer le PDF pour WhatsApp
+                $isNewUser = false; // C'est un utilisateur existant
+                $view = 'admin.shipments.pdf.pdf-existing-user';
+                $pdfFile = $this->generatePdfForWhatsApp($shipmentData, $view);
+
+                // Stocker le chemin et le nom du fichier PDF dans la session
+                session()->flash('pdf_path', $pdfFile);
+                session()->flash('pdf_filename', basename($pdfFile));
+
+                // Créer le message WhatsApp (sans emojis ou caractères spéciaux)
+                $whatsappMessage = "DSF Express - Confirmation d'expedition\n\n" .
+                    "Bonjour " . $user->name . ",\n\n" .
+                    "Votre colis a ete enregistre avec succes.\n" .
+                    "Numero de suivi: " . $package->tracking_number . "\n" .
+                    "Prix: " . number_format($package->price, 2) . " EUR\n" .
+                    "Poids: " . $package->weight . " kg\n\n" .
+                    "Destination: " . str_replace("\n", " ", $validated['destination_address']) . "\n\n" .
+                    "Pour suivre votre colis, visitez:\n" .
+                    url('/tracking/' . $package->tracking_number);
+
+                // Encoder proprement pour URL
+                $whatsappMessage = rawurlencode($whatsappMessage);
+
+                // Stocker le lien WhatsApp dans la session (sans le lien du PDF)
+                $whatsappLink = "https://wa.me/" . $this->formatPhoneForWhatsApp($user->phone, $validated['country']) . "?text=" . $whatsappMessage;
+                session()->flash('whatsapp_link', $whatsappLink);
+            } catch (\Exception $e) {
+                \Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
+                // Continuer sans le PDF pour WhatsApp
+            }
 
             return redirect()->route('admin.shipments.success');
 
@@ -406,6 +489,102 @@ public function searchUsers(Request $request)
         $pdf = PDF::loadView('admin.shipments.pdf.label', ['shipment' => $shipment]);
 
         return $pdf->stream("DSF-{$shipment['package']['tracking']}-label.pdf");
+    }
+
+    /**
+     * Génère le PDF et le sauvegarde temporairement pour WhatsApp
+     */
+    private function generatePdfForWhatsApp($shipmentData, $view)
+    {
+        // Créer le dossier temporaire si n'existe pas
+        $tempDir = storage_path('app/public/temp');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        // Générer le PDF
+        $pdf = PDF::loadView($view, ['shipment' => $shipmentData]);
+
+        // Sauvegarder le PDF dans un fichier temporaire
+        $filename = 'DSF-' . $shipmentData['package']['tracking'] . '-' . time() . '.pdf';
+        $pdfPath = $tempDir . '/' . $filename;
+        $pdf->save($pdfPath);
+
+        // Planifier la suppression du fichier après 24 heures
+        $this->scheduleFileDeletion($pdfPath);
+
+        return $pdfPath;
+    }
+
+    /**
+     * Permet d'accéder au fichier PDF temporaire
+     */
+    public function getTempPdf($filename)
+    {
+        $path = storage_path('app/public/temp/' . $filename);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path);
+    }
+
+    /**
+     * Planifie la suppression du fichier PDF temporaire
+     */
+    private function scheduleFileDeletion($filePath)
+    {
+        // On pourrait utiliser un job programmé, mais pour simplifier,
+        // ici nous enregistrons simplement le fichier à supprimer dans la base de données
+        try {
+            DB::table('temp_files')->insert([
+                'path' => $filePath,
+                'expires_at' => Carbon::now()->addHours(24),
+                'created_at' => Carbon::now()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de la planification de suppression du fichier: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Formater le numéro de téléphone pour WhatsApp selon le pays
+     */
+    private function formatPhoneForWhatsApp($phone, $country = 'France')
+    {
+        // Supprimer les caractères non numériques
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // Formater selon le pays
+        switch ($country) {
+            case 'France':
+                // Format français: +33 6/7 XX XX XX XX
+                if (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
+                    $phone = '33' . substr($phone, 1);
+                }
+                break;
+
+            case 'Cameroun':
+                // Format camerounais: +237 XX XX XX XX
+                if (strlen($phone) == 9) {
+                    $phone = '237' . $phone;
+                } elseif (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
+                    $phone = '237' . substr($phone, 1);
+                }
+                break;
+
+            case 'Belgique':
+                // Format belge: +32 4XX XX XX XX
+                if (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
+                    $phone = '32' . substr($phone, 1);
+                } elseif (strlen($phone) == 9) {
+                    $phone = '32' . $phone;
+                }
+                break;
+        }
+
+        return $phone;
     }
 
     /**

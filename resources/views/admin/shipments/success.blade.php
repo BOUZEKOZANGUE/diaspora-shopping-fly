@@ -120,10 +120,88 @@
                         Télécharger le PDF
                     </a>
                 </div>
+
+                {{-- Notifications --}}
+                @if(session('whatsapp_link') && session('pdf_path'))
+                <div class="px-6 py-5 bg-green-50 border-t border-gray-100">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 bg-green-100 p-2 rounded-full">
+                                <i class="fab fa-whatsapp text-green-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Notification automatique</h3>
+                                <div class="mt-1 text-sm text-gray-600 space-y-1">
+                                    <p>
+                                        <i class="far fa-envelope text-[#0077be] mr-1"></i>
+                                        Un email de confirmation a été envoyé à <span class="font-medium">{{ session('shipment_created.user.email') }}</span>
+                                    </p>
+                                    <p>
+                                        <i class="fas fa-phone text-[#0077be] mr-1"></i>
+                                        Vous pouvez envoyer les détails par WhatsApp au
+                                        <span class="font-medium">{{ session('shipment_created.user.phone') }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action WhatsApp -->
+                        <div class="flex items-center space-x-3">
+                            <!-- Envoyer via WhatsApp -->
+                            <a href="{{ session('whatsapp_link') }}" target="_blank" id="whatsapp-message-link"
+                               class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-md transition-all duration-200">
+                                <i class="fab fa-whatsapp text-xl mr-2"></i>
+                                Message WhatsApp
+                            </a>
+
+                            <!-- Étape 1: Télécharger le PDF -->
+                            <a href="{{ url('/storage/temp/' . session('pdf_filename')) }}" download id="download-pdf-btn"
+                               class="inline-flex items-center px-4 py-2 bg-[#0077be] hover:bg-[#005c91] text-white font-semibold rounded-xl shadow-md transition-all duration-200">
+                                <i class="fas fa-file-pdf text-xl mr-2"></i>
+                                Télécharger PDF pour WhatsApp
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Instructions pour l'envoi du PDF -->
+                    <div class="mt-4 bg-white p-4 rounded-lg border border-green-100">
+                        <h4 class="font-medium text-gray-900 mb-2">Comment envoyer le PDF via WhatsApp:</h4>
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                            <li>Cliquez sur <strong>"Télécharger PDF pour WhatsApp"</strong> pour obtenir le fichier</li>
+                            <li>Cliquez sur <strong>"Message WhatsApp"</strong> pour ouvrir la conversation</li>
+                            <li>Une fois dans WhatsApp, utilisez le bouton <strong>Pièce jointe</strong> (trombone) pour sélectionner le PDF téléchargé</li>
+                            <li>Envoyez le message avec la pièce jointe au client</li>
+                        </ol>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
+
+    <script>
+        // Script pour suivre les clics sur les boutons
+        document.addEventListener('DOMContentLoaded', function() {
+            const downloadPdfBtn = document.getElementById('download-pdf-btn');
+            const whatsappMessageLink = document.getElementById('whatsapp-message-link');
+
+            if (downloadPdfBtn) {
+                downloadPdfBtn.addEventListener('click', function() {
+                    // Modifier le style pour indiquer que l'étape 1 est complétée
+                    setTimeout(() => {
+                        downloadPdfBtn.classList.add('bg-green-500');
+                        downloadPdfBtn.classList.add('hover:bg-green-600');
+                        downloadPdfBtn.classList.remove('bg-[#0077be]');
+                        downloadPdfBtn.classList.remove('hover:bg-[#005c91]');
+
+                        // Attirer l'attention sur l'étape suivante
+                        whatsappMessageLink.classList.add('animate-pulse');
+                        setTimeout(() => {
+                            whatsappMessageLink.classList.remove('animate-pulse');
+                        }, 2000);
+                    }, 500);
+                });
+            }
+        });
+    </script>
 </x-app-layout>
-
-
-

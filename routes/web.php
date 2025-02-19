@@ -84,6 +84,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         // Page de succès
         Route::get('/success', 'success')->name('success');
 
+        // Route pour accéder aux fichiers PDF temporaires
+        Route::get('/storage/temp/{filename}', [ShipmentController::class, 'getTempPdf'])
+        ->where('filename', '.*\.pdf$')
+        ->name('temp.pdf.download');
         // PDFs et étiquettes
         Route::prefix('pdf')->group(function () {
             // PDF pour nouveau client
@@ -121,7 +125,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('testimonials/{testimonial}/toggle-approval', [AdminTestimonialController::class, 'toggleApproval'])
         ->name('testimonials.toggle-approval');
 
-    
+
 });
 
 // Gestion des erreurs
