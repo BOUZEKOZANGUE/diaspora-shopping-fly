@@ -1,5 +1,5 @@
 <x-guest-layout>
-    {{-- Ajout des styles pour les animations --}}
+    {{-- Styles améliorés pour les animations et la responsivité --}}
     <style>
         @keyframes slideInLeft {
             from {
@@ -23,6 +23,17 @@
             }
         }
 
+        @keyframes slideInBottom {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         @keyframes floatingIcon {
             0% {
                 transform: translateY(0px);
@@ -36,11 +47,14 @@
         }
 
         @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 64, 128, 0.4);
             }
-            50% {
-                transform: scale(1.05);
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 64, 128, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 64, 128, 0);
             }
         }
 
@@ -52,11 +66,15 @@
             animation: slideInRight 0.8s ease-out forwards;
         }
 
+        .animate-slide-bottom {
+            animation: slideInBottom 0.6s ease-out forwards;
+        }
+
         .animate-float {
             animation: floatingIcon 3s ease-in-out infinite;
         }
 
-        .animate-pulse-slow {
+        .animate-pulse-blue {
             animation: pulse 2s infinite;
         }
 
@@ -65,73 +83,176 @@
         }
 
         .input-group:focus-within .input-icon-animate {
-            color: #0077be;
+            color: #004080;
             transform: scale(1.1);
+        }
+
+        .feature-item {
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateX(8px);
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding-left: 12px;
+        }
+
+        /* Backgrounds for different screen sizes */
+        @media (max-width: 640px) {
+            .mobile-bg {
+                background: linear-gradient(135deg, rgba(0, 64, 128, 0.9), rgba(0, 92, 145, 0.8));
+            }
         }
     </style>
 
-    <div class="min-h-screen flex">
-        <!-- Left Side - Image -->
+    <div class="min-h-screen flex flex-col lg:flex-row bg-gray-50">
+        <!-- Left Side - Information & Features -->
         <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-r from-[#0077be]/90 to-[#005c91]/90 flex flex-col justify-center px-12">
+            <!-- Overlay semi-transparent background image -->
+            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('images/bg-shipping.jpg') }}'); filter: blur(1px);"></div>
+
+            <!-- Gradient overlay -->
+            <div class="absolute inset-0 bg-gradient-to-r from-[#004080]/90 to-[#005c91]/95 flex flex-col justify-center px-12 z-10">
                 <div class="space-y-8 animate-slide-left">
-                    <h2 class="text-4xl font-bold text-white mb-4">
+                    <!-- Logo in sidebar -->
+                    <div class="flex items-center gap-4 mb-12">
+                        <img src="{{ asset('images/dsf.svg') }}" alt="DSF Logo" class="h-14 w-auto">
+                        <div>
+                            <h1 class="text-3xl font-bold text-white">Diaspora Shopping & Fly</h1>
+                            <p class="text-blue-200">Europe ⟷ Cameroun</p>
+                        </div>
+                    </div>
+
+                    <h2 class="text-4xl font-bold text-white mb-4 flex items-center">
                         <i class="fas fa-plane-departure mr-3 animate-float"></i>
-                        Bienvenue sur DSF
+                        <span>Espace Client</span>
                     </h2>
                     <p class="text-xl text-white/90">
-                        Votre partenaire de confiance pour vos achats et expéditions internationaux
+                        Suivez l'état de vos colis et consultez l'historique de vos transactions
                     </p>
 
+                    <!-- Important Notice Box -->
+                    <div class="mt-6 mb-8 bg-white/10 p-4 rounded-xl border border-white/20">
+                        <h3 class="text-yellow-300 font-bold mb-2 flex items-center">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Informations importantes
+                        </h3>
+                        <ul class="space-y-3 text-white">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                                <span>Votre espace client permet uniquement de suivre l'état de vos colis et de consulter votre historique de transactions</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-400 mt-1 mr-2"></i>
+                                <span>Aucun paiement ne s'effectue via cette plateforme</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-headset text-blue-300 mt-1 mr-2"></i>
+                                <span>Pour toute difficulté d'inscription ou de connexion, contactez notre service client</span>
+                            </li>
+                        </ul>
+                    </div>
+
                     <!-- Features with Animated Icons -->
-                    <div class="space-y-6 mt-8">
-                        <div class="flex items-center space-x-4 hover:translate-x-2 transition-transform duration-300">
+                    <div class="space-y-5">
+                        <h3 class="text-white font-bold mb-2">Fonctionnalités disponibles :</h3>
+                        <div class="feature-item flex items-center space-x-4 p-2">
                             <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center animate-float" style="animation-delay: 0s;">
-                                <i class="fas fa-shipping-fast text-white text-xl"></i>
+                                <i class="fas fa-box text-white text-xl"></i>
                             </div>
-                            <span class="text-white">Livraison rapide et sécurisée</span>
+                            <span class="text-white">Suivez vos colis en temps réel</span>
                         </div>
-                        <div class="flex items-center space-x-4 hover:translate-x-2 transition-transform duration-300">
+                        <div class="feature-item flex items-center space-x-4 p-2">
                             <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center animate-float" style="animation-delay: 0.2s;">
-                                <i class="fas fa-shield-alt text-white text-xl"></i>
+                                <i class="fas fa-history text-white text-xl"></i>
                             </div>
-                            <span class="text-white">Paiements 100% sécurisés</span>
+                            <span class="text-white">Consultez l'historique de vos transactions</span>
                         </div>
-                        <div class="flex items-center space-x-4 hover:translate-x-2 transition-transform duration-300">
+                        <div class="feature-item flex items-center space-x-4 p-2">
                             <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center animate-float" style="animation-delay: 0.4s;">
-                                <i class="fas fa-headset text-white text-xl"></i>
+                                <i class="fas fa-bell text-white text-xl"></i>
                             </div>
-                            <span class="text-white">Support client 24/7</span>
+                            <span class="text-white">Recevez des notifications sur l'état de vos colis</span>
                         </div>
-                        <div class="flex items-center space-x-4 hover:translate-x-2 transition-transform duration-300">
-                            <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center animate-float" style="animation-delay: 0.6s;">
-                                <i class="fas fa-globe text-white text-xl"></i>
-                            </div>
-                            <span class="text-white">Expédition internationale</span>
+                    </div>
+
+                    <!-- Contact info -->
+                    <div class="mt-12 pt-8 border-t border-white/20">
+                        <p class="text-blue-100 text-sm">Besoin d'aide pour vous inscrire ou vous connecter?</p>
+                        <div class="flex items-center gap-4 mt-3">
+                            <a href="https://wa.me/32465616645" class="flex items-center gap-2 text-white/90 hover:text-white transition-colors">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fab fa-whatsapp text-white"></i>
+                                </div>
+                                <span>+32 465 61 66 45</span>
+                            </a>
+                            <a href="tel:+32465616645" class="flex items-center gap-2 text-white/90 hover:text-white transition-colors">
+                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-phone-alt text-white"></i>
+                                </div>
+                                <span>Nous appeler</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Side - Form -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
-            <div class="w-full max-w-md animate-slide-right">
-                <!-- Mobile Logo -->
-                <div class="lg:hidden flex justify-center mb-8 animate-pulse-slow">
-                    <img src="{{ asset('images/dsf.svg') }}" alt="DSF Logo" class="h-16 w-auto">
+        <!-- Mobile Header - Only visible on small screens -->
+        <div class="lg:hidden mobile-bg text-white p-6 animate-slide-bottom">
+            <div class="flex items-center justify-center gap-4">
+                <img src="{{ asset('images/dsf.svg') }}" alt="DSF Logo" class="h-12 w-auto">
+                <div class="text-center">
+                    <h1 class="text-xl font-bold">Diaspora Shopping & Fly</h1>
+                    <p class="text-sm text-blue-200">Europe ⟷ Cameroun</p>
                 </div>
+            </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-xl">
-                    <div class="text-center mb-8">
-                        <div class="inline-block p-3 bg-[#0077be]/10 rounded-full mb-4 animate-float">
-                            <i class="fas fa-user-plus text-3xl text-[#0077be]"></i>
+            <!-- Mobile important notice -->
+            <div class="mt-4 p-3 bg-white/10 rounded-lg border border-white/20">
+                <p class="text-xs text-center text-yellow-200">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Cette plateforme permet uniquement de suivre vos colis. Aucun paiement ne s'effectue ici.
+                </p>
+            </div>
+
+            <!-- Mobile feature highlights -->
+            <div class="mt-4 flex justify-center gap-6">
+                <div class="text-center">
+                    <div class="w-10 h-10 mx-auto bg-white/10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-box text-white text-sm"></i>
+                    </div>
+                    <span class="text-xs mt-1 block">Suivi colis</span>
+                </div>
+                <div class="text-center">
+                    <div class="w-10 h-10 mx-auto bg-white/10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-history text-white text-sm"></i>
+                    </div>
+                    <span class="text-xs mt-1 block">Historique</span>
+                </div>
+                <div class="text-center">
+                    <div class="w-10 h-10 mx-auto bg-white/10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bell text-white text-sm"></i>
+                    </div>
+                    <span class="text-xs mt-1 block">Notifications</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 animate-slide-right">
+            <div class="w-full max-w-md">
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100">
+                    <div class="text-center mb-6">
+                        <div class="inline-block p-4 bg-[#004080]/10 rounded-full mb-4 animate-pulse-blue">
+                            <i class="fas fa-user-plus text-3xl text-[#004080]"></i>
                         </div>
                         <h2 class="text-2xl font-bold text-gray-900">Créer un compte</h2>
-                        <p class="mt-2 text-gray-600">Rejoignez notre communauté DSF</p>
+                        <p class="mt-2 text-gray-600">Suivez vos colis facilement</p>
                     </div>
 
-                    <form method="POST" action="{{ route('register') }}" class="space-y-6">
+                    <form method="POST" action="{{ route('register') }}" class="space-y-5">
                         @csrf
 
                         <!-- Name -->
@@ -142,7 +263,7 @@
                             <input type="text"
                                    name="name"
                                    id="name"
-                                   class="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0077be]/20 focus:border-[#0077be] transition-all duration-300"
+                                   class="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#004080]/20 focus:border-[#004080] transition-all duration-300"
                                    placeholder="Nom complet"
                                    value="{{ old('name') }}"
                                    required>
@@ -158,16 +279,16 @@
                                 <input type="tel"
                                        name="phone"
                                        id="phone"
-                                       class="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0077be]/20 focus:border-[#0077be] transition-all duration-300"
+                                       class="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#004080]/20 focus:border-[#004080] transition-all duration-300"
                                        placeholder="Numéro WhatsApp"
                                        value="{{ old('phone') }}"
                                        required>
                             </div>
-                            <p class="text-sm text-gray-500 pl-4 flex items-center">
-                                <i class="fas fa-info-circle mr-2 text-[#0077be]"></i>
-                                Inclure l'indicatif pays (ex: +33, +1)
+                            <p class="text-xs text-gray-500 pl-4 flex items-center">
+                                <i class="fas fa-info-circle mr-2 text-[#004080]"></i>
+                                Inclure l'indicatif pays (ex: +33, +32, +237)
                             </p>
-                            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                            <x-input-error :messages="$errors->get('phone')" class="mt-1" />
                         </div>
 
                         <!-- Email -->
@@ -178,7 +299,7 @@
                             <input type="email"
                                    name="email"
                                    id="email"
-                                   class="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0077be]/20 focus:border-[#0077be] transition-all duration-300"
+                                   class="block w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#004080]/20 focus:border-[#004080] transition-all duration-300"
                                    placeholder="Adresse email"
                                    value="{{ old('email') }}"
                                    required>
@@ -193,13 +314,13 @@
                             <input :type="show ? 'text' : 'password'"
                                    name="password"
                                    id="password"
-                                   class="block w-full pl-12 pr-12 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0077be]/20 focus:border-[#0077be] transition-all duration-300"
+                                   class="block w-full pl-12 pr-12 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#004080]/20 focus:border-[#004080] transition-all duration-300"
                                    placeholder="Mot de passe"
                                    required>
                             <button type="button"
                                     class="absolute inset-y-0 right-0 pr-4 flex items-center transition-transform hover:scale-110"
                                     @click="show = !show">
-                                <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'" class="text-gray-400 hover:text-[#0077be]"></i>
+                                <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'" class="text-gray-400 hover:text-[#004080]"></i>
                             </button>
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
@@ -212,34 +333,70 @@
                             <input :type="show ? 'text' : 'password'"
                                    name="password_confirmation"
                                    id="password_confirmation"
-                                   class="block w-full pl-12 pr-12 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0077be]/20 focus:border-[#0077be] transition-all duration-300"
+                                   class="block w-full pl-12 pr-12 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#004080]/20 focus:border-[#004080] transition-all duration-300"
                                    placeholder="Confirmez le mot de passe"
                                    required>
                             <button type="button"
                                     class="absolute inset-y-0 right-0 pr-4 flex items-center transition-transform hover:scale-110"
                                     @click="show = !show">
-                                <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'" class="text-gray-400 hover:text-[#0077be]"></i>
+                                <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'" class="text-gray-400 hover:text-[#004080]"></i>
                             </button>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="flex items-start space-x-3 mt-4">
+                            <div class="flex items-center h-5">
+                                <input id="terms" name="terms" type="checkbox" required
+                                       class="w-4 h-4 text-[#004080] border-gray-300 rounded focus:ring-[#004080]">
+                            </div>
+                            <div class="flex-1 text-sm">
+                                <label for="terms" class="font-medium text-gray-700">J'accepte les <a href="#" class="text-[#004080] hover:underline">conditions d'utilisation</a> et la <a href="#" class="text-[#004080] hover:underline">politique de confidentialité</a></label>
+                            </div>
                         </div>
 
                         <!-- Submit Button -->
                         <button type="submit"
-                                class="w-full bg-gradient-to-r from-[#0077be] to-[#005c91] hover:from-[#005c91] hover:to-[#004b76] text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                                class="w-full bg-gradient-to-r from-[#004080] to-[#005c91] hover:from-[#003366] hover:to-[#004b76] text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 mt-6">
                             <span>Créer mon compte</span>
                             <i class="fas fa-arrow-right animate-float"></i>
                         </button>
 
                         <!-- Login Link -->
-                        <div class="text-center transform hover:scale-105 transition-transform duration-300">
+                        <div class="text-center transform hover:scale-105 transition-transform duration-300 pt-4">
                             <p class="text-sm text-gray-600">
                                 Déjà inscrit ?
-                                <a href="{{ route('login') }}" class="font-medium text-[#0077be] hover:text-[#005c91] transition-colors duration-300 flex items-center justify-center gap-2 mt-1">
+                                <a href="{{ route('login') }}" class="font-medium text-[#004080] hover:text-[#003366] transition-colors duration-300 flex items-center justify-center gap-2 mt-2">
                                     <i class="fas fa-sign-in-alt"></i>
                                     <span>Se connecter</span>
                                 </a>
                             </p>
                         </div>
                     </form>
+                </div>
+
+                <!-- Mobile Contact Info -->
+                <div class="lg:hidden mt-6 text-center">
+                    <p class="text-gray-500 text-sm">Besoin d'aide pour vous inscrire?</p>
+                    <div class="flex justify-center gap-4 mt-3">
+                        <a href="https://wa.me/32465616645" class="flex items-center gap-2 text-[#004080]">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fab fa-whatsapp text-white"></i>
+                            </div>
+                        </a>
+                        <a href="tel:+32465616645" class="flex items-center gap-2 text-[#004080]">
+                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-phone-alt text-white"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Additional Information for Mobile -->
+                <div class="lg:hidden mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 text-xs text-gray-600">
+                    <p class="flex items-start">
+                        <i class="fas fa-info-circle text-[#004080] mt-0.5 mr-2"></i>
+                        Cette plateforme vous permet uniquement de suivre l'état de vos colis et l'historique de vos transactions. Aucun paiement n'est effectué via l'application.
+                    </p>
                 </div>
             </div>
         </div>

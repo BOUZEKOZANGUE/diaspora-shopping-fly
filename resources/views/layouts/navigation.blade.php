@@ -3,17 +3,7 @@
     mobileMenu: false,
     userMenu: false,
     isScrolled: false,
-    alerts: [{
-            direction: 'Europe → Cameroun',
-            date: '12/02/2025',
-            status: 'Réservez maintenant'
-        },
-        {
-            direction: 'Cameroun → Europe',
-            date: '15/02/2025',
-            status: 'Places limitées'
-        }
-    ]
+    alerts: @json($upcomingDepartures ?? [])
 }" @scroll.window="isScrolled = window.pageYOffset > 50">
 
     <!-- Shipping Alert Banner - Optimized for all screens -->
@@ -29,12 +19,12 @@
                             <i class="fas fa-plane-departure text-[#ffd700]"></i>
                             <span class="font-medium" x-text="alert.direction"></span>
                             <span class="text-[#ffd700] font-bold" x-text="alert.date"></span>
-                            <template x-if="alert.status === 'Places limitées'">
+                            <template x-if="alert.is_limited">
                                 <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">
-                                    Nombre de colis  limitées
+                                    Nombre de colis limités
                                 </span>
                             </template>
-                            <a href="#"
+                            <a :href="'{{ route('register') }}"
                                 class="bg-[#ffd700] text-[#0077be] px-3 py-1 rounded-full text-sm font-bold hover:bg-white transition-colors duration-300">
                                 Réserver
                             </a>
@@ -63,12 +53,12 @@
                             <i class="fas fa-plane-departure text-[#ffd700]"></i>
                             <span class="font-medium" x-text="alert.direction"></span>
                             <span class="text-[#ffd700] font-bold" x-text="alert.date"></span>
-                            <template x-if="alert.status === 'Places limitées'">
+                            <template x-if="alert.is_limited">
                                 <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">
-                                    Nombre de colis  limitées
+                                    Nombre de colis limités
                                 </span>
                             </template>
-                            <a href="#"
+                            <a :href="'{{ route('home') }}?departure=' + alert.id"
                                 class="bg-[#ffd700] text-[#0077be] px-3 py-1 rounded-full text-sm font-bold hover:bg-white transition-colors duration-300">
                                 Réserver
                             </a>
@@ -87,7 +77,7 @@
                             <i class="fas fa-plane-departure text-[#ffd700] text-xs"></i>
                             <span class="text-sm" x-text="alert.direction"></span>
                             <span class="text-[#ffd700] text-sm" x-text="alert.date"></span>
-                            <a href="#"
+                            <a :href="'{{ route('home') }}?departure=' + alert.id"
                                 class="bg-[#ffd700] text-[#0077be] px-2 py-0.5 rounded-full text-xs font-bold">
                                 Réserver
                             </a>
@@ -110,7 +100,7 @@
                             <i class="fas fa-plane-departure text-[#ffd700] text-xs"></i>
                             <span class="text-sm" x-text="alert.direction"></span>
                             <span class="text-[#ffd700] text-sm" x-text="alert.date"></span>
-                            <a href="#"
+                            <a :href="'{{ route('home') }}?departure=' + alert.id"
                                 class="bg-[#ffd700] text-[#0077be] px-2 py-0.5 rounded-full text-xs font-bold">
                                 Réserver
                             </a>
@@ -239,30 +229,20 @@
                     <div class="bg-[#0077be]/5 rounded-xl p-4 space-y-3">
                         <h3 class="text-[#0077be] font-bold text-sm">Prochains départs</h3>
                         <div class="space-y-2">
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-plane-departure text-[#0077be]"></i>
-                                    <span>Europe → Cameroun</span>
+                            <template x-for="(alert, index) in alerts.slice(0, 2)" :key="index">
+                                <div class="flex items-center justify-between text-sm">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-plane-departure text-[#0077be]"></i>
+                                        <span x-text="alert.direction"></span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-[#0077be] font-medium" x-text="alert.date"></span>
+                                        <a :href="'{{ route('home') }}?departure=' + alert.id" class="bg-[#0077be] text-white px-2 py-1 rounded-full text-xs">
+                                            Réserver
+                                        </a>
+                                    </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-[#0077be] font-medium">12/02/2025</span>
-                                    <a href="#" class="bg-[#0077be] text-white px-2 py-1 rounded-full text-xs">
-                                        Réserver
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-plane-arrival text-[#0077be]"></i>
-                                    <span>Cameroun → Europe</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-[#0077be] font-medium">15/02/2025</span>
-                                    <a href="#" class="bg-[#0077be] text-white px-2 py-1 rounded-full text-xs">
-                                        Réserver
-                                    </a>
-                                </div>
-                            </div>
+                            </template>
                             <div class="flex justify-between text-xs text-gray-600 pt-2 border-t border-[#0077be]/10">
                                 <span class="flex items-center">
                                     <i class="fas fa-clock mr-1"></i> 5-7 jours
@@ -474,3 +454,4 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</div>

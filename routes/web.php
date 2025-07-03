@@ -13,10 +13,8 @@ use App\Http\Controllers\Admin\{
     AdminPackageController,
     AdminUserController,
     ShipmentController,
-
     AdminAdvantageController,
-    AdminFlightController,
-    AdminPackageFlightController,
+    AdminFlyController,
     AdminServiceController,
     AdminTestimonialController
 };
@@ -28,6 +26,7 @@ use App\Http\Controllers\Admin\{
 */
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/tracking', [TrackingController::class, 'show'])->name('tracking.show');
+Route::get('/tracking/{tracking}', [TrackingController::class, 'track'])->name('tracking.track');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 /*
@@ -46,6 +45,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Gestion des colis (utilisateur standard)
     Route::resource('packages', PackageController::class);
+
+    // Actions spécifiques pour les médias
+    Route::delete('/packages/{package}/remove-image', [PackageController::class, 'removeImage'])->name('packages.remove-image');
+    Route::delete('/packages/{package}/remove-video', [PackageController::class, 'removeVideo'])->name('packages.remove-video');
 });
 
 /*
@@ -56,7 +59,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard et accueil admin
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/', [AdminController::class, 'dashboard'])->name('home');
 
     // Gestion des utilisateurs
     Route::resource('users', AdminUserController::class);
@@ -67,7 +70,26 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/packages/{package}/label', [AdminPackageController::class, 'generateLabel'])->name('packages.label');
     Route::post('/packages/batch-action', [AdminPackageController::class, 'batchAction'])->name('packages.batch-action');
 
-    // Gestion des expéditions
+    // Ressources administratives
+    Route::resources([
+        'advantages' => AdminAdvantageController::class,
+        'services' => AdminServiceController::class,
+        'testimonials' => AdminTestimonialController::class,
+        'flys' => AdminFlyController::class
+    ]);
+
+    // Routes supplémentaires pour les voyages
+    Route::put('flys/{id}/suspend', [AdminFlyController::class, 'suspend'])->name('flys.suspend');
+    Route::put('flys/{id}/reactivate', [AdminFlyController::class, 'reactivate'])->name('flys.reactivate');
+    Route::put('flys/{id}/complete', [AdminFlyController::class, 'complete'])->name('flys.complete');
+    Route::post('flys/{id}/assign-packages', [AdminFlyController::class, 'assignPackages'])->name('flys.assign-packages');
+    Route::delete('flys/{flyId}/packages/{packageId}', [AdminFlyController::class, 'removePackage'])->name('flys.remove-package');
+
+    // Route pour l'approbation des témoignages
+    Route::post('testimonials/{testimonial}/toggle-approval', [AdminTestimonialController::class, 'toggleApproval'])
+        ->name('testimonials.toggle-approval');
+
+    // =================== GESTION DES EXPÉDITIONS ===================
     Route::prefix('shipments')->name('shipments.')->controller(ShipmentController::class)->group(function () {
         // Liste et affichage
         Route::get('/', 'index')->name('index');
@@ -85,18 +107,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/success', 'success')->name('success');
 
         // Route pour accéder aux fichiers PDF temporaires
-        Route::get('/storage/temp/{filename}', [ShipmentController::class, 'getTempPdf'])
-        ->where('filename', '.*\.pdf$')
-        ->name('temp.pdf.download');
+        Route::get('/storage/temp/{filename}', 'getTempPdf')
+            ->where('filename', '.*\.pdf')
+            ->name('temp.pdf.download');
+
         // PDFs et étiquettes
-        Route::prefix('pdf')->group(function () {
+        Route::prefix('pdf')->name('pdf.')->group(function () {
             // PDF pour nouveau client
-            Route::get('/new-user/{tracking?}', 'generatePdf')->name('pdf.new-user');
-            Route::get('/new-user/{tracking?}/download', 'downloadPdf')->name('pdf.new-user.download');
+            Route::get('/new-user/{tracking?}', 'generatePdf')->name('new-user');
+            Route::get('/new-user/{tracking?}/download', 'downloadPdf')->name('new-user.download');
 
             // PDF pour client existant
-            Route::get('/existing-user/{tracking?}', 'generatePdf')->name('pdf.existing-user');
-            Route::get('/existing-user/{tracking?}/download', 'downloadPdf')->name('pdf.existing-user.download');
+            Route::get('/existing-user/{tracking?}', 'generatePdf')->name('existing-user');
+            Route::get('/existing-user/{tracking?}/download', 'downloadPdf')->name('existing-user.download');
 
             // Étiquette
             Route::get('/label/{tracking}', 'generateLabel')->name('label');
@@ -111,21 +134,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // API pour la recherche d'utilisateurs (autocomplétion)
     Route::get('/api/users/search', [ShipmentController::class, 'searchUsers'])->name('api.users.search');
-
-    // Ressources supplémentaires
-    Route::resources([
-        'advantages' => AdminAdvantageController::class,
-        'flights' => AdminFlightController::class,
-        'package-flights' => AdminPackageFlightController::class,
-        'services' => AdminServiceController::class,
-        'testimonials' => AdminTestimonialController::class,
-    ]);
-
-    // Route supplémentaire pour l'approbation des témoignages
-    Route::post('testimonials/{testimonial}/toggle-approval', [AdminTestimonialController::class, 'toggleApproval'])
-        ->name('testimonials.toggle-approval');
-
-
 });
 
 // Gestion des erreurs

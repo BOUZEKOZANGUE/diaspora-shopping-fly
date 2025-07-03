@@ -7,6 +7,8 @@
 
     <title>{{ config('app.name', 'Diaspora Shopping & Fly') }}</title>
 
+    
+    <link rel="icon" href="{{ asset('images/dsf.svg') }}" type="image/x-icon">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 

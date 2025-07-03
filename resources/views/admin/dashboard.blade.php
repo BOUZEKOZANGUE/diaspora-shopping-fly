@@ -7,10 +7,12 @@
                 <div class="flex flex-col space-y-6 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
                     {{-- Section titre avec animation slide --}}
                     <div class="transform transition-all duration-500 ease-out translate-y-0 opacity-100 group">
-                        <h2 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#0077be] to-[#005c91] bg-clip-text text-transparent">
+                        <h2
+                            class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#0077be] to-[#005c91] bg-clip-text text-transparent">
                             Administration
                         </h2>
-                        <p class="text-sm sm:text-base text-[#0077be]/70 mt-1 group-hover:text-[#0077be]/90 transition-colors">
+                        <p
+                            class="text-sm sm:text-base text-[#0077be]/70 mt-1 group-hover:text-[#0077be]/90 transition-colors">
                             Bienvenue sur votre espace d'administration
                         </p>
                     </div>
@@ -24,48 +26,51 @@
                                        transition-all duration-300 ease-out hover:shadow-lg hover:shadow-[#0077be]/20 transform hover:-translate-y-0.5">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                 </svg>
                                 <span>Gestion Accueil</span>
                                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
                             {{-- Dropdown Menu --}}
-                            <div x-show="open"
-                                 @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 transform -translate-y-2"
-                                 x-transition:enter-end="opacity-100 transform translate-y-0"
-                                 class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg z-[1000] border border-gray-100">
+                            <div x-show="open" @click.away="open = false"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 transform -translate-y-2"
+                                x-transition:enter-end="opacity-100 transform translate-y-0"
+                                class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg z-[1000] border border-gray-100">
                                 <div class="p-2 space-y-1">
                                     {{-- Services --}}
                                     <a href="{{ route('admin.services.index') }}"
-                                       class="flex items-center px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-[#0077be]/10 transition-colors">
-                                        <svg class="w-5 h-5 mr-3 text-[#0077be]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="flex items-center px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-[#0077be]/10 transition-colors">
+                                        <svg class="w-5 h-5 mr-3 text-[#0077be]" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                         </svg>
                                         Services
                                     </a>
 
                                     {{-- Avantages --}}
                                     <a href="{{ route('admin.advantages.index') }}"
-                                       class="flex items-center px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-[#0077be]/10 transition-colors">
-                                        <svg class="w-5 h-5 mr-3 text-[#0077be]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="flex items-center px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-[#0077be]/10 transition-colors">
+                                        <svg class="w-5 h-5 mr-3 text-[#0077be]" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                                         </svg>
                                         Avantages
                                     </a>
 
                                     {{-- Témoignages --}}
                                     <a href="{{ route('admin.testimonials.index') }}"
-                                       class="flex items-center px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-[#0077be]/10 transition-colors">
-                                        <svg class="w-5 h-5 mr-3 text-[#0077be]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="flex items-center px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-[#0077be]/10 transition-colors">
+                                        <svg class="w-5 h-5 mr-3 text-[#0077be]" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                                         </svg>
                                         Témoignages
                                     </a>
@@ -75,13 +80,13 @@
 
                         {{-- Bouton Nouveau colis --}}
                         <a href="{{ route('admin.shipments.create-existing') }}"
-                           class="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-[#0077be] to-[#005c91] text-white font-medium rounded-xl
+                            class="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-[#0077be] to-[#005c91] text-white font-medium rounded-xl
                                   transition-all duration-300 ease-out hover:shadow-lg hover:shadow-[#0077be]/20 transform hover:-translate-y-0.5">
                             <div class="flex items-center">
                                 <svg class="w-5 h-5 mr-2 transition-transform duration-300 ease-out group-hover:scale-110"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
                                 <span>Nouveau colis</span>
                             </div>
@@ -89,15 +94,28 @@
 
                         {{-- Bouton Nouveau client + colis --}}
                         <a href="{{ route('admin.shipments.create') }}"
-                           class="group flex items-center justify-center px-5 py-2.5 bg-[#ffd700] text-[#0077be] font-medium rounded-xl
+                            class="group flex items-center justify-center px-5 py-2.5 bg-[#ffd700] text-[#0077be] font-medium rounded-xl
                                   transition-all duration-300 ease-out hover:shadow-lg hover:shadow-[#ffd700]/20 transform hover:-translate-y-0.5">
                             <div class="flex items-center">
                                 <svg class="w-5 h-5 mr-2 transition-transform duration-300 ease-out group-hover:rotate-12"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                 </svg>
                                 <span>Nouveau client + colis</span>
+                            </div>
+                        </a>
+                        <!-- Ajouter ce bouton après le bouton "Nouveau client + colis" -->
+                        <a href="{{ route('admin.flys.index') }}"
+                            class="group flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-[#005c91] to-[#0077be] text-white font-medium rounded-xl
+       transition-all duration-300 ease-out hover:shadow-lg hover:shadow-[#0077be]/20 transform hover:-translate-y-0.5">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 transition-transform duration-300 ease-out group-hover:rotate-12"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                                </svg>
+                                <span>Gérer les voyages</span>
                             </div>
                         </a>
                     </div>
@@ -105,10 +123,14 @@
 
                 {{-- Éléments décoratifs avec animation --}}
                 <div class="absolute inset-0 -z-10">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-[#ffd700]/5 rounded-full blur-3xl transform rotate-12
-                              animate-[pulse_4s_ease-in-out_infinite]"></div>
-                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-[#0077be]/5 rounded-full blur-3xl transform -rotate-12
-                              animate-[pulse_4s_ease-in-out_infinite_1s]"></div>
+                    <div
+                        class="absolute top-0 right-0 w-64 h-64 bg-[#ffd700]/5 rounded-full blur-3xl transform rotate-12
+                              animate-[pulse_4s_ease-in-out_infinite]">
+                    </div>
+                    <div
+                        class="absolute bottom-0 left-0 w-64 h-64 bg-[#0077be]/5 rounded-full blur-3xl transform -rotate-12
+                              animate-[pulse_4s_ease-in-out_infinite_1s]">
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,8 +138,15 @@
         {{-- Style pour les animations --}}
         <style>
             @keyframes pulse {
-                0%, 100% { opacity: 0.1; }
-                50% { opacity: 0.3; }
+
+                0%,
+                100% {
+                    opacity: 0.1;
+                }
+
+                50% {
+                    opacity: 0.3;
+                }
             }
         </style>
     </x-slot>

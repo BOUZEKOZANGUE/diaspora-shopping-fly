@@ -33,13 +33,27 @@ class PackageManager {
             checkbox.addEventListener('change', () => this.handleCheckboxChange(checkbox));
         });
 
-        this.elements.batchActionSelect?.addEventListener('change', () => this.handleBatchActionChange());
-        this.elements.applyButton?.addEventListener('click', () => this.handleBatchAction());
-        this.elements.cancelButton?.addEventListener('click', () => this.handleCancelSelection());
-        this.elements.searchInput?.addEventListener('input', this.debounce(() => this.handleSearch(), 300));
-        this.elements.filterButtons?.forEach(button => {
-            button.addEventListener('click', () => this.handleFilter(button));
-        });
+        if (this.elements.batchActionSelect) {
+            this.elements.batchActionSelect.addEventListener('change', () => this.handleBatchActionChange());
+        }
+
+        if (this.elements.applyButton) {
+            this.elements.applyButton.addEventListener('click', () => this.handleBatchAction());
+        }
+
+        if (this.elements.cancelButton) {
+            this.elements.cancelButton.addEventListener('click', () => this.handleCancelSelection());
+        }
+
+        if (this.elements.searchInput) {
+            this.elements.searchInput.addEventListener('input', this.debounce(() => this.handleSearch(), 300));
+        }
+
+        if (this.elements.filterButtons) {
+            this.elements.filterButtons.forEach(button => {
+                button.addEventListener('click', () => this.handleFilter(button));
+            });
+        }
     }
 
     handleBatchActionChange() {
@@ -71,7 +85,7 @@ class PackageManager {
             }
         });
 
-        this.elements.totalCount.textContent = `${visibleCount} colis au total`;
+        this.updateTotalCount(visibleCount);
     }
 
     handleFilter(button) {
@@ -84,6 +98,8 @@ class PackageManager {
 
         rows.forEach(row => {
             const statusCell = row.querySelector('td:nth-child(4)');
+            if (!statusCell) return;
+
             const statusText = statusCell.textContent.trim().toLowerCase();
 
             if (filterValue === 'tous' || statusText.includes(filterValue)) {
@@ -96,21 +112,31 @@ class PackageManager {
             }
         });
 
-        this.elements.totalCount.textContent = `${visibleCount} colis au total`;
+        this.updateTotalCount(visibleCount);
+    }
+
+    updateTotalCount(count) {
+        if (this.elements.totalCount) {
+            this.elements.totalCount.textContent = `${count} colis au total`;
+        }
     }
 
     handleCancelSelection() {
         const { selectAll, packageCheckboxes } = this.elements;
-        selectAll.checked = false;
-        selectAll.indeterminate = false;
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
 
-        packageCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-            const row = checkbox.closest('tr');
-            if (row) {
-                row.classList.remove('bg-blue-50/50');
-            }
-        });
+        if (packageCheckboxes) {
+            packageCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                const row = checkbox.closest('tr');
+                if (row) {
+                    row.classList.remove('bg-blue-50/50');
+                }
+            });
+        }
 
         this.updateBatchActionsVisibility();
     }
@@ -129,25 +155,98 @@ class PackageManager {
         }
     }
 
+    async handleBatchAction() {
+        const checkedBoxes = document.querySelectorAll('.package-checkbox:checked');
+        const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+        if (selectedIds.length === 0) {
+            this.showNotification('Aucun colis sélectionné', 'error');
+            return;
+        }
+
+        const action = this.elements.batchActionSelect.value;
+        if (!action) {
+            this.showNotification('Veuillez sélectionner une action', 'error');
+            return;
+        }
+
+        const confirmMessage = this.getBatchActionConfirmMessage(selectedIds, action);
+        const confirmed = await this.showConfirmDialog(confirmMessage);
+
+        if (confirmed) {
+            try {
+                const result = await this.executeBatchAction(selectedIds, action);
+                this.showNotification(result.message || 'Action effectuée avec succès', 'success');
+
+                // Handle different actions
+                if (action === 'delete') {
+                    // Remove rows from DOM instead of reloading
+                    selectedIds.forEach(id => {
+                        const row = document.getElementById(`package-row-${id}`);
+                        if (row) {
+                            row.style.transition = 'all 0.5s ease';
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(20px)';
+                            setTimeout(() => {
+                                row.remove();
+                                this.updateCountAfterDeletion();
+                            }, 500);
+                        }
+                    });
+                } else if (action === 'status') {
+                    // Update status in the DOM
+                    const newStatus = this.elements.statusSelect.value;
+                    const statusText = this.elements.statusSelect.options[this.elements.statusSelect.selectedIndex].text;
+
+                    selectedIds.forEach(id => {
+                        const row = document.getElementById(`package-row-${id}`);
+                        if (row) {
+                            const statusCell = row.querySelector('td:nth-child(4)');
+                            if (statusCell) {
+                                statusCell.innerHTML = `<span class="status-badge status-${newStatus}">${statusText}</span>`;
+                            }
+                        }
+                    });
+                }
+
+                // Reset selection
+                this.handleCancelSelection();
+            } catch (error) {
+                this.showNotification(error.message || 'Erreur lors de l\'exécution de l\'action', 'error');
+            }
+        }
+    }
+
+    updateCountAfterDeletion() {
+        const remainingRows = document.querySelectorAll('tbody tr').length;
+        this.updateTotalCount(remainingRows);
+    }
+
     async executeBatchAction(selectedIds, action) {
         const formData = new FormData();
-        formData.append('ids[]', selectedIds);
+        selectedIds.forEach(id => formData.append('ids[]', id));
         formData.append('action', action);
         if (action === 'status') {
             formData.append('status', this.elements.statusSelect.value);
         }
 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (!csrfToken) {
+            throw new Error('CSRF token not found');
+        }
+
         const response = await fetch('/admin/packages/batch-action', {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json'
             },
             body: formData
         });
 
         if (!response.ok) {
-            throw new Error('Erreur lors de l\'exécution de l\'action groupée');
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Erreur lors de l\'exécution de l\'action groupée');
         }
 
         const data = await response.json();
@@ -173,7 +272,6 @@ class PackageManager {
         return result.isConfirmed;
     }
 
-    // Les autres méthodes que vous aviez déjà...
     handleSelectAll() {
         const { packageCheckboxes } = this.elements;
         const isChecked = this.elements.selectAll.checked;
@@ -197,26 +295,37 @@ class PackageManager {
 
     updateSelectAllState() {
         const { selectAll, packageCheckboxes } = this.elements;
+        if (!selectAll) return;
+
         const checkedBoxes = document.querySelectorAll('.package-checkbox:checked');
 
-        selectAll.checked = checkedBoxes.length === packageCheckboxes.length;
+        selectAll.checked = checkedBoxes.length === packageCheckboxes.length && packageCheckboxes.length > 0;
         selectAll.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < packageCheckboxes.length;
     }
 
     updateBatchActionsVisibility() {
-        const { batchActions, selectedCount, totalCount, batchActionSelect, statusSelect } = this.elements;
+        const { batchActions, selectedCount, totalCount } = this.elements;
         const checkedCount = document.querySelectorAll('.package-checkbox:checked').length;
         const hasSelection = checkedCount > 0;
 
-        batchActions.classList.toggle('hidden', !hasSelection);
-        selectedCount.classList.toggle('hidden', !hasSelection);
-        totalCount.classList.toggle('hidden', hasSelection);
+        if (batchActions) {
+            batchActions.classList.toggle('hidden', !hasSelection);
+        }
 
-        selectedCount.textContent = `${checkedCount} sélectionné(s)`;
+        if (selectedCount) {
+            selectedCount.classList.toggle('hidden', !hasSelection);
+            selectedCount.textContent = `${checkedCount} sélectionné(s)`;
+        }
 
-        if (!hasSelection) {
-            batchActionSelect.value = '';
-            statusSelect.classList.add('hidden');
+        if (totalCount) {
+            totalCount.classList.toggle('hidden', hasSelection);
+        }
+
+        if (!hasSelection && this.elements.batchActionSelect) {
+            this.elements.batchActionSelect.value = '';
+            if (this.elements.statusSelect) {
+                this.elements.statusSelect.classList.add('hidden');
+            }
         }
     }
 
@@ -225,9 +334,13 @@ class PackageManager {
         toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white transform transition-all duration-300 z-50 ${
             type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
         }`;
+        toast.style.transform = 'translateY(100%)';
 
         toast.textContent = message;
         document.body.appendChild(toast);
+
+        // Force reflow
+        toast.getBoundingClientRect();
 
         requestAnimationFrame(() => {
             toast.style.transform = 'translateY(0)';
@@ -277,6 +390,9 @@ window.confirmDelete = async function(event, packageId) {
 
             // Récupérer le token CSRF
             const token = document.querySelector('meta[name="csrf-token"]').content;
+            if (!token) {
+                throw new Error('CSRF token not found');
+            }
 
             // Faire la requête avec fetch
             const response = await fetch(form.action, {
@@ -294,7 +410,6 @@ window.confirmDelete = async function(event, packageId) {
 
             // Log pour debug
             console.log('Response status:', response.status);
-            console.log('Response headers:', Array.from(response.headers.entries()));
 
             let data;
             try {
@@ -307,22 +422,35 @@ window.confirmDelete = async function(event, packageId) {
             }
 
             if (data.success) {
+                // Trouver et supprimer la ligne du tableau directement
                 const row = document.getElementById(`package-row-${packageId}`);
                 if (row) {
                     row.style.transition = 'all 0.5s ease';
                     row.style.opacity = '0';
                     row.style.transform = 'translateX(20px)';
+
+                    // Supprimer l'élément du DOM après l'animation
+                    setTimeout(() => {
+                        row.remove();
+
+                        // Mettre à jour le compteur
+                        if (window.packageManager) {
+                            window.packageManager.updateCountAfterDeletion();
+                        }
+                    }, 500);
                 }
 
+                // Afficher un message de succès
                 await Swal.fire({
                     title: 'Succès!',
-                    text: data.message,
+                    text: data.message || 'Colis supprimé avec succès',
                     icon: 'success',
                     timer: 1500,
                     showConfirmButton: false
                 });
 
-                setTimeout(() => window.location.reload(), 1500);
+                // Ne pas recharger la page
+                // Supprimé: setTimeout(() => window.location.reload(), 1500);
             } else {
                 throw new Error(data.message || 'Erreur lors de la suppression');
             }
@@ -340,24 +468,40 @@ window.confirmDelete = async function(event, packageId) {
 window.copyToClipboard = async function(text) {
     try {
         await navigator.clipboard.writeText(text);
-        window.packageManager.showNotification('Copié dans le presse-papier !', 'success');
+        if (window.packageManager) {
+            window.packageManager.showNotification('Copié dans le presse-papier !', 'success');
+        }
     } catch (err) {
-        window.packageManager.showNotification('Erreur lors de la copie', 'error');
+        console.error('Erreur lors de la copie:', err);
+        if (window.packageManager) {
+            window.packageManager.showNotification('Erreur lors de la copie', 'error');
+        }
     }
 };
 
 window.printLabel = async function(packageId) {
     try {
-        window.packageManager.showNotification('Préparation de l\'étiquette...', 'info');
+        if (window.packageManager) {
+            window.packageManager.showNotification('Préparation de l\'étiquette...', 'info');
+        }
+
+        const token = document.querySelector('meta[name="csrf-token"]').content;
+        if (!token) {
+            throw new Error('CSRF token not found');
+        }
 
         const response = await fetch(`/admin/packages/${packageId}/label`, {
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-CSRF-TOKEN': token,
                 'Accept': 'application/pdf'
             }
         });
 
-        if (!response.ok) throw new Error('Erreur lors de la génération');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error('Erreur lors de la génération');
+        }
 
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -368,10 +512,20 @@ window.printLabel = async function(packageId) {
 
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
 
-        window.packageManager.showNotification('Étiquette générée avec succès !', 'success');
+        // Cleanup
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 100);
+
+        if (window.packageManager) {
+            window.packageManager.showNotification('Étiquette générée avec succès !', 'success');
+        }
     } catch (error) {
-        window.packageManager.showNotification('Erreur lors de la génération de l\'étiquette', 'error');
+        console.error('Erreur lors de la génération de l\'étiquette:', error);
+        if (window.packageManager) {
+            window.packageManager.showNotification('Erreur lors de la génération de l\'étiquette', 'error');
+        }
     }
 };

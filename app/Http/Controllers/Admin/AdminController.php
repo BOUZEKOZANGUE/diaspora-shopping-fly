@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    
+
 
     public function dashboard()
     {
@@ -39,10 +39,10 @@ class AdminController extends Controller
             ->get();
 
         // Prochains vols
-        $upcomingFlights = Flight::where('departure_date', '>', now())
-            ->orderBy('departure_date')
-            ->take(3)
-            ->get();
+        // $upcomingFlights = Flight::where('departure_date', '>', now())
+        //     ->orderBy('departure_date')
+        //     ->take(3)
+        //     ->get();
 
         // Derniers utilisateurs inscrits
         $recentUsers = User::latest()
@@ -60,7 +60,6 @@ class AdminController extends Controller
             'stats',
             'monthlyStats',
             'recentPackages',
-            'upcomingFlights',
             'recentUsers',
             'chartData'
         ));

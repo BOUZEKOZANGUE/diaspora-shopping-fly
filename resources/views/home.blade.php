@@ -1,349 +1,22 @@
 <x-app-layout>
-    <!-- Hero Section avec Background Image Moderne -->
-    <div class="relative min-h-screen bg-gradient-to-b from-[#005c91] to-[#005c91]/50">
-        <div class="absolute inset-0 z-0">
-            <img src="{{ asset('images/2.png') }}" alt="Background" class="w-full h-full object-cover opacity-40">
-            <div class="absolute inset-0 bg-black/20"></div>
-        </div>
 
-        <!-- Contenu Principal -->
-        <div class="relative z-10">
-            <!-- Hero Section Moderne -->
-            <section class="min-h-screen flex items-center justify-center px-4 py-20">
-                <div class="max-w-7xl mx-auto">
-                    <div class="bg-white/5 backdrop-blur-lg p-12 rounded-3xl shadow-2xl border border-white/10">
-                        <div class="max-w-4xl mx-auto text-center">
-                            <h1 class="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
-                                Diaspora Shopping & Fly
-                                <span class="block text-yellow-400 mt-4">
-                                    Europe ⟷ Cameroun
-                                </span>
-                            </h1>
-                            <p class="text-xl md:text-2xl text-gray-200 mb-12">
-                                Service de transport express bidirectionnel sécurisé et fiable
-                                <span class="block mt-4 text-yellow-400 font-semibold">
-                                    Rapidité • Sécurité • Fiabilité
-                                </span>
-                            </p>
-                            <div class="flex flex-col sm:flex-row gap-6 justify-center">
-                                <a href="#expedier"
-                                    class="group flex items-center justify-center px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-300 transform hover:-translate-y-1 border border-white/20">
-                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    Expédier un colis
-                                </a>
-                                <a href="#contact"
-                                    class="group flex items-center justify-center px-8 py-4 bg-yellow-400 text-blue-900 font-semibold rounded-xl hover:bg-yellow-300 transition-all duration-300 transform hover:-translate-y-1">
-                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
-                                        </path>
-                                    </svg>
-                                    Nous contacter
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+    {{-- Section Hero --}}
+    <x-hero-section />
 
-            <!-- Section Alerte Moderne -->
-            <section class="bg-gradient-to-r from-[#005c91] to-[#005c91] relative py-12">
-                <div class="absolute inset-0 bg-grid-white/[0.05]"></div>
-                <div class="max-w-7xl mx-auto px-4 py-6 relative">
-                    <!-- Message de bienvenue -->
-                    <div class="text-center mb-10">
-                        <p class="text-blue-100 text-lg">Prochains départs programmés</p>
-                        <div class="w-24 h-1 bg-yellow-400 mx-auto mt-4"></div>
-                    </div>
+    {{-- Section Départs avec données dynamiques --}}
+    <x-departures-section :nextDepartures="$nextDepartures" :upcomingDepartures="$upcomingDepartures" />
 
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <!-- Carte Europe vers Cameroun -->
-                        <div class="relative group">
-                            <div
-                                class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300">
-                            </div>
-                            <div
-                                class="relative flex items-center justify-between bg-white/10 rounded-2xl p-6 border border-white/10 backdrop-blur-sm hover:bg-white/[0.15] transition-all duration-300">
-                                <div class="flex items-center space-x-6">
-                                    <div class="bg-blue-900/40 p-4 rounded-xl">
-                                        <svg class="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-medium text-white">Europe → Cameroun</h3>
-                                        <div class="mt-2 flex items-center space-x-3">
-                                            <span class="text-yellow-400 font-bold text-xl">12/02/2025</span>
-                                            <span
-                                                class="px-3 py-1 bg-blue-900/40 rounded-full text-sm text-blue-100">Réservez
-                                                maintenant</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="hidden md:flex items-center">
-                                    <a href="#expedier"
-                                        class="flex items-center justify-center p-3 bg-yellow-400 text-blue-900 rounded-xl hover:bg-yellow-300 transition-all group">
-                                        <span class="mr-2">Réserver</span>
-                                        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
-                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Carte Cameroun vers Europe -->
-                        <div class="relative group">
-                            <div
-                                class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300">
-                            </div>
-                            <div
-                                class="relative flex items-center justify-between bg-white/10 rounded-2xl p-6 border border-white/10 backdrop-blur-sm hover:bg-white/[0.15] transition-all duration-300">
-                                <div class="flex items-center space-x-6">
-                                    <div class="bg-blue-900/40 p-4 rounded-xl">
-                                        <svg class="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 21l-7-3.5L5 21V5a2 2 0 012-2h10a2 2 0 012 2v16z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-medium text-white">Cameroun → Europe</h3>
-                                        <div class="mt-2 flex items-center space-x-3">
-                                            <span class="text-yellow-400 font-bold text-xl">15/02/2025</span>
-                                            <span
-                                                class="px-3 py-1 bg-blue-900/40 rounded-full text-sm text-blue-100">Places
-                                                limitées</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="hidden md:flex items-center">
-                                    <a href="#expedier"
-                                        class="flex items-center justify-center p-3 bg-yellow-400 text-blue-900 rounded-xl hover:bg-yellow-300 transition-all group">
-                                        <span class="mr-2">Réserver</span>
-                                        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
-                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    {{-- Section Tarifs --}}
+    <x-tarifs-section />
 
-                    <!-- Suivi des colis -->
-                    <div class="mt-8 bg-white/5 rounded-xl p-4 border border-white/10">
-                        <div class="flex flex-wrap justify-center gap-8 text-center">
-                            <div class="flex items-center space-x-2">
-                                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span class="text-blue-100">Délai de livraison: 5-7 jours</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span class="text-blue-100">Suivi des colis en ligne</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                                    </path>
-                                </svg>
-                                <span class="text-blue-100">Colis assuré et sécurisé</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </div>
-    <!-- Section Tarifs -->
-    <section id="tarifs" class="py-24 bg-gradient-to-b from-gray-50 to-white">
-        <div class="container mx-auto px-4">
-            <div class="max-w-7xl mx-auto">
-                <!-- En-tête -->
-                <div class="text-center mb-16">
-                    <span class="text-[#005c91] font-semibold">Nos Tarifs</span>
-                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mt-4">
-                        Grille Tarifaire DSF Europe
-                    </h2>
-                    <div class="w-24 h-1 bg-yellow-400 mx-auto mt-4"></div>
-                </div>
-
-                <!-- Note importante -->
-                <div class="max-w-3xl mx-auto mb-12">
-                    <div class="bg-blue-50 border-l-4 border-[#005c91] p-6 rounded-r-xl">
-                        <div class="flex items-start">
-                            <svg class="w-6 h-6 text-[#005c91] mt-1" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <div class="ml-4">
-                                <p class="text-gray-800 font-medium">Important</p>
-                                <p class="text-gray-600 mt-1">Tous les colis doivent être payés au moment du dépôt, à
-                                    l'exception des colis de Liège et Charleroi.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grille tarifaire -->
-                <div class="grid md:grid-cols-2 gap-8">
-                    <!-- Tarifs standards -->
-                    <div class="bg-white rounded-2xl shadow-lg p-8">
-                        <h3 class="text-xl font-bold text-gray-900 mb-6">Tarifs Standards</h3>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">Effets personnels</p>
-                                    <p class="text-sm text-gray-600">Vêtements, chaussures, etc.</p>
-                                </div>
-                                <span class="text-lg font-bold text-[#005c91]">10€/kg</span>
-                            </div>
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">Articles commerciaux</p>
-                                    <p class="text-sm text-gray-600">Parfums, pièces auto, appareils</p>
-                                </div>
-                                <span class="text-lg font-bold text-[#005c91]">13€/kg</span>
-                            </div>
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">Boissons alcoolisées</p>
-                                    <p class="text-sm text-gray-600">Vin, whisky, champagne</p>
-                                </div>
-                                <span class="text-lg font-bold text-[#005c91]">15€/kg</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tarifs spéciaux -->
-                    <div class="bg-white rounded-2xl shadow-lg p-8">
-                        <h3 class="text-xl font-bold text-gray-900 mb-6">Tarifs Spéciaux</h3>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">Médicaments</p>
-                                    <p class="text-sm text-gray-600">Avec autorisation pharmacie</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-lg font-bold text-[#005c91]">10€/kg</p>
-                                    <p class="text-sm text-gray-600">15€/kg sans autorisation</p>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">Enveloppe documents</p>
-                                    <p class="text-sm text-gray-600">Format A4 uniquement</p>
-                                </div>
-                                <span class="text-lg font-bold text-[#005c91]">15€</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tarifs électroniques -->
-                    <div class="bg-white rounded-2xl shadow-lg p-8">
-                        <h3 class="text-xl font-bold text-gray-900 mb-6">Appareils Électroniques</h3>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">Téléphone</p>
-                                    <p class="text-sm text-gray-600">Occasion / Neuf</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-lg font-bold text-[#005c91]">15€ / 20€</p>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">Ordinateur & Tablette</p>
-                                    <p class="text-sm text-gray-600">Occasion / Neuf</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-lg font-bold text-[#005c91]">30€ / 50€</p>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <div>
-                                    <p class="font-medium text-gray-900">PS5</p>
-                                    <p class="text-sm text-gray-600">Occasion</p>
-                                </div>
-                                <span class="text-lg font-bold text-[#005c91]">85€</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Notes importantes -->
-                    <div class="bg-white rounded-2xl shadow-lg p-8">
-                        <h3 class="text-xl font-bold text-gray-900 mb-6">Informations Complémentaires</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-start space-x-3">
-                                <svg class="w-5 h-5 text-yellow-500 mt-1" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
-                                    </path>
-                                </svg>
-                                <p class="text-gray-600">Supplément colis hors format : 120€</p>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <svg class="w-5 h-5 text-yellow-500 mt-1" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <p class="text-gray-600">Pas de facturation au demi-kilo. Au-delà de 0,2 kg, arrondi au
-                                    kilo supérieur.</p>
-                            </div>
-                            <div class="flex items-start space-x-3">
-                                <svg class="w-5 h-5 text-yellow-500 mt-1" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <p class="text-gray-600">Délai de retrait : 8 jours maximum. Au-delà, nous déclinons
-                                    toute responsabilité.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Call to Action -->
-                <div class="mt-16 text-center">
-                    <a href="#contact"
-                        class="inline-flex items-center px-8 py-4 bg-[#005c91] text-white font-semibold rounded-xl hover:bg-[#005c91]/90 transition-all duration-300">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                            </path>
-                        </svg>
-                        Besoin d'un devis personnalisé ?
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Section Principale -->
+    <!-- Section Principale Améliorée -->
     <section class="py-24 bg-gradient-to-b from-blue-50 to-white relative overflow-hidden">
         <!-- Éléments décoratifs de fond -->
         <div class="absolute inset-0 bg-grid-slate-100 opacity-10"></div>
+        <div
+            class="absolute inset-0 bg-[radial-gradient(#004080_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.15]">
+        </div>
 
         <div class="container mx-auto px-4 relative">
             <div class="max-w-7xl mx-auto">
@@ -361,7 +34,7 @@
 
                 <!-- Bureaux Principaux -->
                 <div class="mb-20">
-                    <div class="flex items-center justify-between mb-8">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                         <h3 class="text-2xl font-bold text-gray-900 flex items-center">
                             <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -370,7 +43,7 @@
                             </svg>
                             Bureaux Principaux
                         </h3>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                             <span class="text-sm text-gray-500">Légende :</span>
                             <span class="text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Sur RDV</span>
                             <span class="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">Ouvert</span>
@@ -543,16 +216,16 @@
                         </div>
 
 
-                        <!-- Cameroun -->
+                        <!-- Douala - Mise à jour -->
                         <div
                             class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
                             <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-4">
                                 <div class="flex items-center gap-3">
                                     <img src="https://flagcdn.com/cm.svg" alt="Cameroun"
                                         class="w-10 h-6 rounded shadow-sm">
-                                    <h4 class="text-xl font-bold text-white">Cameroun</h4>
-                                    <span class="text-sm bg-white/20 text-white px-3 py-1 rounded-full ml-auto">
-                                        Sur RDV
+                                    <h4 class="text-xl font-bold text-white">Douala</h4>
+                                    <span class="text-sm bg-green-400/30 text-white px-3 py-1 rounded-full ml-auto">
+                                        Bureau Principal
                                     </span>
                                 </div>
                             </div>
@@ -566,25 +239,9 @@
                                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         </svg>
                                         <div>
-                                            <p class="font-medium text-gray-900">Points de Relais</p>
-                                            <ul class="mt-2 space-y-2 text-gray-600">
-                                                <li class="flex items-start gap-2">
-                                                    <svg class="w-4 h-4 text-blue-600 mt-1" fill="none"
-                                                        stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    Aéroport International de Douala
-                                                </li>
-                                                <li class="flex items-start gap-2">
-                                                    <svg class="w-4 h-4 text-blue-600 mt-1" fill="none"
-                                                        stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    Aéroport de Yaoundé
-                                                </li>
-                                            </ul>
+                                            <p class="font-medium text-gray-900">Adresse</p>
+                                            <p class="text-gray-600">Deido, face Grand Bazar<br>Proche de l'école
+                                                primaire bilingue Cristal</p>
                                         </div>
                                     </div>
 
@@ -596,7 +253,7 @@
                                         </svg>
                                         <div>
                                             <p class="font-medium text-gray-900">Disponibilité</p>
-                                            <p class="text-gray-600">Service sur rendez-vous uniquement</p>
+                                            <p class="text-gray-600">Lun - Sam: 9h - 18h</p>
                                         </div>
                                     </div>
                                 </div>
@@ -638,6 +295,138 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Points Relais au Cameroun -->
+                <div class="mb-16">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-2xl font-bold text-gray-900 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            </svg>
+                            Points Relais au Cameroun
+                        </h3>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Douala - Deido -->
+                        <div
+                            class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                            <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://flagcdn.com/cm.svg" alt="Cameroun"
+                                        class="w-10 h-6 rounded shadow-sm">
+                                    <h4 class="text-xl font-bold text-white">Douala - Deido</h4>
+                                    <span class="text-sm bg-white/20 text-white px-3 py-1 rounded-full ml-auto">
+                                        Point principal
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="p-6 space-y-6">
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                                        <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                        <div>
+                                            <p class="font-medium text-gray-900">Adresse</p>
+                                            <p class="text-gray-600 mt-2">Deido, face Grand Bazar<br>Proche de l'école
+                                                primaire bilingue Cristal</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                                        <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div>
+                                            <p class="font-medium text-gray-900">Informations</p>
+                                            <p class="text-gray-600 mt-2">Point central pour tous les dépôts et
+                                                récupérations de colis à Douala.</p>
+                                            <p class="mt-2 text-sm text-blue-600 font-medium">Contactez notre agent
+                                                Arole pour plus d'informations : +237 939 960 22</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Yaoundé -->
+                        <div
+                            class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                            <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://flagcdn.com/cm.svg" alt="Cameroun"
+                                        class="w-10 h-6 rounded shadow-sm">
+                                    <h4 class="text-xl font-bold text-white">Yaoundé - Aéroport</h4>
+                                    <span class="text-sm bg-white/20 text-white px-3 py-1 rounded-full ml-auto">
+                                        Point de retrait
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="p-6 space-y-6">
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                                        <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-1" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div>
+                                            <p class="font-medium text-gray-900">Informations</p>
+                                            <p class="text-gray-600 mt-2">Récupération des colis à l'aéroport de
+                                                Yaoundé.</p>
+                                            <div class="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                                <p class="text-yellow-800 flex items-start gap-2">
+                                                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none"
+                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                    </svg>
+                                                    <span>Service de livraison à domicile disponible avec supplément à
+                                                        la charge du client.</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p class="text-blue-700">Pour tout renseignement ou devis de livraison,
+                                            contactez notre agent Arole.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bannière d'information supplémentaire -->
+                    <div class="mt-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-4 text-white shadow-md">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/20 p-2 rounded-full">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p class="font-medium">Pour tous les colis au Cameroun, veuillez prendre rendez-vous au
+                                moins 24h à l'avance.</p>
                         </div>
                     </div>
                 </div>
@@ -772,7 +561,8 @@
                 <!-- Instructions et Avertissements avec nouveau design -->
                 <div class="grid md:grid-cols-2 gap-8">
                     <!-- Avertissements Points Relais -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+                    <div
+                        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all duration-300">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="bg-red-100 p-3 rounded-full">
                                 <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor"
@@ -806,7 +596,8 @@
                     </div>
 
                     <!-- Procédure de Dépôt -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                    <div
+                        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="bg-blue-100 p-3 rounded-full">
                                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor"
@@ -849,7 +640,8 @@
                 </div>
 
                 <!-- Procédure Cameroun -->
-                <div class="mt-8 bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
+                <div
+                    class="mt-8 bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 hover:shadow-xl transition-all duration-300">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="bg-emerald-100 p-3 rounded-full">
                             <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor"
@@ -867,8 +659,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />
                             </svg>
-                            <p class="text-emerald-800">Tous les services au Cameroun sont sur rendez-vous uniquement
-                            </p>
+                            <p class="text-emerald-800">Bureau principal à Deido, Douala (face Grand Bazar)</p>
                         </div>
                         <div class="flex items-start gap-3 p-3 bg-emerald-50 rounded-lg">
                             <svg class="w-5 h-5 text-emerald-600 mt-0.5" fill="none" stroke="currentColor"
@@ -891,7 +682,8 @@
                 </div>
 
                 <!-- Fonctionnalités de Suivi -->
-                <div class="mt-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-8 text-white">
+                <div
+                    class="mt-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-8 text-white hover:shadow-xl transition-all duration-300">
                     <div class="grid md:grid-cols-2 gap-8 items-center">
                         <div class="space-y-6">
                             <h3 class="text-2xl font-bold">Suivez Vos Colis en Temps Réel</h3>
@@ -927,24 +719,26 @@
                                     </li>
                                 </ul>
                             </div>
-                            <div class="flex gap-4">
+                            <div class="flex flex-col sm:flex-row gap-4">
                                 <a href="/register"
-                                    class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                                    class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium">
                                     Créer un compte
                                 </a>
                                 <a href="/login"
-                                    class="inline-flex items-center px-6 py-3 border-2 border-white text-white rounded-lg hover:bg-white/10 transition-colors">
+                                    class="inline-flex items-center px-6 py-3 border-2 border-white text-white rounded-lg hover:bg-white/10 transition-colors font-medium">
                                     Se connecter
                                 </a>
                             </div>
                         </div>
-                        <div class="relative hidden md:block">
-                            <img src="/images/DASHBOARD1.jpeg" alt="Interface de suivi"
-                                class="w-full max-w-md mx-auto">
-                        </div>
-                        <div class="relative hidden md:block">
-                            <img src="/images/suivi.jpeg" alt="Interface de suivi"
-                                class="w-full max-w-md mx-auto">
+                        <div class="relative hidden md:grid grid-cols-2 gap-4">
+                            <div class="transform rotate-2 transition-transform hover:rotate-0 duration-300">
+                                <img src="/images/DASHBOARD1.jpeg" alt="Interface de suivi"
+                                    class="w-full rounded-lg shadow-lg">
+                            </div>
+                            <div class="transform -rotate-2 transition-transform hover:rotate-0 duration-300 mt-8">
+                                <img src="/images/suivi.jpeg" alt="Interface de suivi"
+                                    class="w-full rounded-lg shadow-lg">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -968,6 +762,21 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 initializeTracking();
+
+                // Animation au défilement
+                const animateOnScroll = () => {
+                    const elements = document.querySelectorAll('.animate-on-scroll');
+                    elements.forEach(el => {
+                        const rect = el.getBoundingClientRect();
+                        const isVisible = (rect.top <= window.innerHeight * 0.8);
+                        if (isVisible) {
+                            el.classList.add('fade-in-up');
+                        }
+                    });
+                };
+
+                window.addEventListener('scroll', animateOnScroll);
+                animateOnScroll(); // Exécution initiale
             });
         </script>
     </section>

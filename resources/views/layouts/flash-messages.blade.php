@@ -1,28 +1,24 @@
-{{-- Success Message --}}
-@if (session('success'))
-    <x-alert type="success" :message="session('success')" />
-@endif
-
-{{-- Error Message --}}
-@if (session('error'))
-    <x-alert type="error" :message="session('error')" />
-@endif
-
-{{-- Warning Message --}}
-@if (session('warning'))
-    <x-alert type="warning" :message="session('warning')" />
-@endif
-
-{{-- Info Message --}}
-@if (session('info'))
-    <x-alert type="info" :message="session('info')" />
-@endif
-
-{{-- Validation Errors --}}
-@if ($errors->any())
-    <div class="space-y-2">
-        @foreach ($errors->all() as $error)
-            <x-alert type="error" :message="$error" />
-        @endforeach
+@if (session()->has('success'))
+    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+        <p>{{ session('success') }}</p>
     </div>
 @endif
+
+@if (session()->has('error'))
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+        <p>{{ session('error') }}</p>
+    </div>
+@endif
+
+@if (session()->has('warning'))
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+        <p>{{ session('warning') }}</p>
+    </div>
+@endif
+
+@if (session()->has('info'))
+    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4" role="alert">
+        <p>{{ session('info') }}</p>
+    </div>
+@endif
+
