@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Notifications\ColisConfirmation;
 
@@ -122,7 +124,7 @@ class ShipmentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Erreur recherche utilisateurs: ' . $e->getMessage());
+            Log::error('Erreur recherche utilisateurs: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Erreur lors de la recherche'
             ], 500);
@@ -145,7 +147,24 @@ class ShipmentController extends Controller
             'description_colis' => 'required|string',
             'recipient_name' => 'required|string|max:255',
             'recipient_phone' => 'required|string|max:20',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max par image
+            'videos' => 'nullable|array|max:5',
+            'videos.*' => 'mimes:mp4,mov,avi,wmv|max:10240', // 10MB max par vidéo
+        ], [
+            'images.*.image' => 'Chaque fichier image doit être un fichier image valide.',
+            'images.*.mimes' => 'Les images doivent être au format JPEG, PNG, JPG ou GIF.',
+            'images.*.max' => 'Chaque image ne doit pas dépasser 10MB.',
+            'videos.*.mimes' => 'Les vidéos doivent être au format MP4, MOV, AVI ou WMV.',
+            'videos.*.max' => 'Chaque vidéo ne doit pas dépasser 10MB.',
         ]);
+
+        // Validation : au moins une image ou une vidéo doit être fournie
+        if (empty($request->file('images')) && empty($request->file('videos'))) {
+            return back()
+                ->withInput()
+                ->withErrors(['media' => 'Veuillez ajouter au moins une image ou une vidéo du colis.']);
+        }
 
         try {
             DB::beginTransaction();
@@ -161,13 +180,20 @@ class ShipmentController extends Controller
                 'password' => Hash::make($defaultPassword),
             ]);
 
-            // Mise à jour des données validées pour inclure l'adresse complète
+            // Traitement des médias
+            $mediaData = $this->handleMediaUpload($request);
+
+            // Mise à jour des données validées
             $validated['destination_address'] = sprintf(
                 "%s\n%s, %s",
                 $validated['destination_address'],
                 $validated['city'],
                 $validated['country']
             );
+
+            // Ajouter les médias aux données
+            $validated['images'] = $mediaData['images'];
+            $validated['videos'] = $mediaData['videos'];
 
             // Création du colis
             $package = $this->createPackage($user->id, $validated);
@@ -188,7 +214,8 @@ class ShipmentController extends Controller
                     'price' => $package->price,
                     'destination' => $package->destination_address,
                     'weight' => $package->weight,
-                    'description' => $package->description_colis
+                    'description' => $package->description_colis,
+                    'media_count' => $package->getMediaCount()
                 ]
             ];
 
@@ -200,52 +227,36 @@ class ShipmentController extends Controller
             try {
                 $user->notify(new ColisConfirmation($shipmentData));
             } catch (\Exception $e) {
-                \Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
+                Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
                 // Continuer malgré l'erreur d'email
             }
 
             try {
                 // Générer le PDF pour WhatsApp
-                $isNewUser = true; // C'est un nouvel utilisateur
+                $isNewUser = true;
                 $view = 'admin.shipments.pdf.pdf-new-user';
                 $pdfFile = $this->generatePdfForWhatsApp($shipmentData, $view);
 
-                // Stocker le chemin et le nom du fichier PDF dans la session
                 session()->flash('pdf_path', $pdfFile);
                 session()->flash('pdf_filename', basename($pdfFile));
 
-                // Créer le message WhatsApp (sans emojis ou caractères spéciaux)
-                $whatsappMessage = "DSF Express - Confirmation d'expedition\n\n" .
-                    "Bonjour " . $user->name . ",\n\n" .
-                    "Votre colis a ete enregistre avec succes.\n" .
-                    "Numero de suivi: " . $package->tracking_number . "\n" .
-                    "Prix: " . number_format($package->price, 2) . " EUR\n" .
-                    "Poids: " . $package->weight . " kg\n\n" .
-                    "Destination: " . str_replace("\n", " ", $validated['destination_address']) . "\n\n" .
-                    "Pour suivre votre colis, visitez:\n" .
-                    url('/tracking/' . $package->tracking_number);
-
-                // Ajouter les identifiants pour les nouveaux utilisateurs
-                $whatsappMessage .= "\n\nVos identifiants de connexion:\n" .
-                    "Email: " . $dsfEmail . "\n" .
-                    "Mot de passe: " . $defaultPassword;
-
-                // Encoder proprement pour URL
-                $whatsappMessage = rawurlencode($whatsappMessage);
-
-                // Stocker le lien WhatsApp dans la session (sans le lien du PDF)
+                // Créer le message WhatsApp
+                $whatsappMessage = $this->createWhatsAppMessage($user, $package, $validated, true, $defaultPassword);
                 $whatsappLink = "https://wa.me/" . $this->formatPhoneForWhatsApp($user->phone, $validated['country']) . "?text=" . $whatsappMessage;
                 session()->flash('whatsapp_link', $whatsappLink);
             } catch (\Exception $e) {
-                \Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
-                // Continuer sans le PDF pour WhatsApp
+                Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
             }
 
             return redirect()->route('admin.shipments.success');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error($e->getMessage());
+            Log::error('Erreur création colis: ' . $e->getMessage());
+
+            // Nettoyer les fichiers uploadés en cas d'erreur
+            $this->cleanupUploadedFiles($request);
+
             return back()
                 ->withInput()
                 ->with('error', 'Erreur lors de la création : ' . $e->getMessage());
@@ -267,7 +278,24 @@ class ShipmentController extends Controller
             'description_colis' => 'required|string',
             'recipient_name' => 'required|string|max:255',
             'recipient_phone' => 'required|string|max:20',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max par image
+            'videos' => 'nullable|array|max:5',
+            'videos.*' => 'mimes:mp4,mov,avi,wmv|max:10240', // 10MB max par vidéo
+        ], [
+            'images.*.image' => 'Chaque fichier image doit être un fichier image valide.',
+            'images.*.mimes' => 'Les images doivent être au format JPEG, PNG, JPG ou GIF.',
+            'images.*.max' => 'Chaque image ne doit pas dépasser 10MB.',
+            'videos.*.mimes' => 'Les vidéos doivent être au format MP4, MOV, AVI ou WMV.',
+            'videos.*.max' => 'Chaque vidéo ne doit pas dépasser 10MB.',
         ]);
+
+        // Validation : au moins une image ou une vidéo doit être fournie
+        if (empty($request->file('images')) && empty($request->file('videos'))) {
+            return back()
+                ->withInput()
+                ->withErrors(['media' => 'Veuillez ajouter au moins une image ou une vidéo du colis.']);
+        }
 
         try {
             DB::beginTransaction();
@@ -275,13 +303,20 @@ class ShipmentController extends Controller
             // Récupérer l'utilisateur sélectionné
             $user = User::findOrFail($validated['user_id']);
 
-            // Mise à jour des données validées pour inclure l'adresse complète
+            // Traitement des médias
+            $mediaData = $this->handleMediaUpload($request);
+
+            // Mise à jour des données validées
             $validated['destination_address'] = sprintf(
                 "%s\n%s, %s",
                 $validated['destination_address'],
                 $validated['city'],
                 $validated['country']
             );
+
+            // Ajouter les médias aux données
+            $validated['images'] = $mediaData['images'];
+            $validated['videos'] = $mediaData['videos'];
 
             // Création du colis
             $package = $this->createPackage($user->id, $validated);
@@ -301,7 +336,8 @@ class ShipmentController extends Controller
                     'price' => $package->price,
                     'destination' => $package->destination_address,
                     'weight' => $package->weight,
-                    'description' => $package->description_colis
+                    'description' => $package->description_colis,
+                    'media_count' => $package->getMediaCount()
                 ]
             ];
 
@@ -313,51 +349,318 @@ class ShipmentController extends Controller
             try {
                 $user->notify(new ColisConfirmation($shipmentData));
             } catch (\Exception $e) {
-                \Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
-                // Continuer malgré l'erreur d'email
+                Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
             }
 
             try {
                 // Générer le PDF pour WhatsApp
-                $isNewUser = false; // C'est un utilisateur existant
+                $isNewUser = false;
                 $view = 'admin.shipments.pdf.pdf-existing-user';
                 $pdfFile = $this->generatePdfForWhatsApp($shipmentData, $view);
 
-                // Stocker le chemin et le nom du fichier PDF dans la session
                 session()->flash('pdf_path', $pdfFile);
                 session()->flash('pdf_filename', basename($pdfFile));
 
-                // Créer le message WhatsApp (sans emojis ou caractères spéciaux)
-                $whatsappMessage = "DSF Express - Confirmation d'expedition\n\n" .
-                    "Bonjour " . $user->name . ",\n\n" .
-                    "Votre colis a ete enregistre avec succes.\n" .
-                    "Numero de suivi: " . $package->tracking_number . "\n" .
-                    "Prix: " . number_format($package->price, 2) . " EUR\n" .
-                    "Poids: " . $package->weight . " kg\n\n" .
-                    "Destination: " . str_replace("\n", " ", $validated['destination_address']) . "\n\n" .
-                    "Pour suivre votre colis, visitez:\n" .
-                    url('/tracking/' . $package->tracking_number);
-
-                // Encoder proprement pour URL
-                $whatsappMessage = rawurlencode($whatsappMessage);
-
-                // Stocker le lien WhatsApp dans la session (sans le lien du PDF)
+                // Créer le message WhatsApp
+                $whatsappMessage = $this->createWhatsAppMessage($user, $package, $validated, false);
                 $whatsappLink = "https://wa.me/" . $this->formatPhoneForWhatsApp($user->phone, $validated['country']) . "?text=" . $whatsappMessage;
                 session()->flash('whatsapp_link', $whatsappLink);
             } catch (\Exception $e) {
-                \Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
-                // Continuer sans le PDF pour WhatsApp
+                Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
             }
 
             return redirect()->route('admin.shipments.success');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error($e->getMessage());
+            Log::error('Erreur création colis existant: ' . $e->getMessage());
+
+            // Nettoyer les fichiers uploadés en cas d'erreur
+            $this->cleanupUploadedFiles($request);
+
             return back()
                 ->withInput()
                 ->with('error', 'Erreur lors de la création : ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Gère l'upload des images et vidéos
+     */
+    private function handleMediaUpload(Request $request)
+    {
+        $uploadedImages = [];
+        $uploadedVideos = [];
+
+        try {
+            // Traitement des images
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    if ($image->isValid()) {
+                        // Générer un nom unique
+                        $filename = $this->generateMediaFilename($image, 'image');
+
+                        // Stocker dans le dossier packages/images
+                        $path = $image->storeAs('packages/images', $filename, 'public');
+
+                        if ($path) {
+                            $uploadedImages[] = $path;
+                            Log::info("Image uploadée: " . $path);
+                        }
+                    }
+                }
+            }
+
+            // Traitement des vidéos
+            if ($request->hasFile('videos')) {
+                foreach ($request->file('videos') as $video) {
+                    if ($video->isValid()) {
+                        // Générer un nom unique
+                        $filename = $this->generateMediaFilename($video, 'video');
+
+                        // Stocker dans le dossier packages/videos
+                        $path = $video->storeAs('packages/videos', $filename, 'public');
+
+                        if ($path) {
+                            $uploadedVideos[] = $path;
+                            Log::info("Vidéo uploadée: " . $path);
+                        }
+                    }
+                }
+            }
+
+            return [
+                'images' => $uploadedImages,
+                'videos' => $uploadedVideos
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'upload des médias: ' . $e->getMessage());
+
+            // Nettoyer les fichiers partiellement uploadés
+            foreach ($uploadedImages as $imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            foreach ($uploadedVideos as $videoPath) {
+                Storage::disk('public')->delete($videoPath);
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Génère un nom de fichier unique pour les médias
+     */
+    private function generateMediaFilename($file, $type)
+    {
+        $timestamp = Carbon::now()->format('YmdHis');
+        $random = Str::random(8);
+        $extension = $file->getClientOriginalExtension();
+
+        return "{$type}_{$timestamp}_{$random}.{$extension}";
+    }
+
+    /**
+     * Nettoie les fichiers uploadés en cas d'erreur
+     */
+    private function cleanupUploadedFiles(Request $request)
+    {
+        try {
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    if ($image->isValid()) {
+                        $tempPath = $image->getPathname();
+                        if (file_exists($tempPath)) {
+                            unlink($tempPath);
+                        }
+                    }
+                }
+            }
+
+            if ($request->hasFile('videos')) {
+                foreach ($request->file('videos') as $video) {
+                    if ($video->isValid()) {
+                        $tempPath = $video->getPathname();
+                        if (file_exists($tempPath)) {
+                            unlink($tempPath);
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Erreur lors du nettoyage des fichiers: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Affiche une image du colis
+     */
+    public function showMedia(Package $package, $type, $index)
+    {
+        try {
+            if ($type === 'image') {
+                $media = $package->images;
+            } elseif ($type === 'video') {
+                $media = $package->videos;
+            } else {
+                abort(404);
+            }
+
+            if (!$media || !isset($media[$index])) {
+                abort(404);
+            }
+
+            $path = storage_path('app/public/' . $media[$index]);
+
+            if (!file_exists($path)) {
+                abort(404);
+            }
+
+            return response()->file($path);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur affichage média: ' . $e->getMessage());
+            abort(404);
+        }
+    }
+
+    /**
+     * Supprime un média spécifique d'un colis
+     */
+    public function deleteMedia(Package $package, $type, $index)
+    {
+        try {
+            DB::beginTransaction();
+
+            if ($type === 'image') {
+                $media = $package->images ?? [];
+            } elseif ($type === 'video') {
+                $media = $package->videos ?? [];
+            } else {
+                return response()->json(['error' => 'Type de média invalide'], 400);
+            }
+
+            if (!isset($media[$index])) {
+                return response()->json(['error' => 'Média non trouvé'], 404);
+            }
+
+            // Supprimer le fichier du stockage
+            $filePath = $media[$index];
+            Storage::disk('public')->delete($filePath);
+
+            // Retirer l'élément du tableau
+            array_splice($media, $index, 1);
+
+            // Mettre à jour le package
+            if ($type === 'image') {
+                $package->images = $media;
+            } else {
+                $package->videos = $media;
+            }
+
+            $package->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Média supprimé avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur suppression média: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'Erreur lors de la suppression'
+            ], 500);
+        }
+    }
+
+    /**
+     * Ajoute des médias à un colis existant
+     */
+    public function addMedia(Request $request, Package $package)
+    {
+        $validated = $request->validate([
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
+            'videos' => 'nullable|array|max:5',
+            'videos.*' => 'mimes:mp4,mov,avi,wmv|max:10240',
+        ]);
+
+        if (empty($request->file('images')) && empty($request->file('videos'))) {
+            return back()->withErrors(['media' => 'Veuillez sélectionner au moins un fichier.']);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Traitement des nouveaux médias
+            $mediaData = $this->handleMediaUpload($request);
+
+            // Fusionner avec les médias existants
+            $existingImages = $package->images ?? [];
+            $existingVideos = $package->videos ?? [];
+
+            $package->images = array_merge($existingImages, $mediaData['images']);
+            $package->videos = array_merge($existingVideos, $mediaData['videos']);
+
+            $package->save();
+
+            DB::commit();
+
+            return back()->with('success', 'Médias ajoutés avec succès.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur ajout médias: ' . $e->getMessage());
+
+            $this->cleanupUploadedFiles($request);
+
+            return back()->with('error', 'Erreur lors de l\'ajout des médias.');
+        }
+    }
+
+    /**
+     * Crée le message WhatsApp
+     */
+    private function createWhatsAppMessage($user, $package, $validated, $isNewUser = false, $password = null)
+    {
+        $message = "DSF Express - Confirmation d'expedition\n\n" .
+            "Bonjour " . $user->name . ",\n\n" .
+            "Votre colis a ete enregistre avec succes.\n" .
+            "Numero de suivi: " . $package->tracking_number . "\n" .
+            "Prix: " . number_format($package->price, 2) . " EUR\n" .
+            "Poids: " . $package->weight . " kg\n\n" .
+            "Destination: " . str_replace("\n", " ", $validated['destination_address']) . "\n\n";
+
+        // Ajouter les informations sur les médias
+        $mediaCount = $package->getMediaCount();
+        if ($mediaCount['total'] > 0) {
+            $message .= "Medias du colis: ";
+            if ($mediaCount['images'] > 0) {
+                $message .= $mediaCount['images'] . " image(s)";
+            }
+            if ($mediaCount['videos'] > 0) {
+                if ($mediaCount['images'] > 0) $message .= " et ";
+                $message .= $mediaCount['videos'] . " video(s)";
+            }
+            $message .= "\n\n";
+        }
+
+        $message .= "Pour suivre votre colis, visitez:\n" .
+            url('/tracking/' . $package->tracking_number);
+
+        // Ajouter les identifiants pour les nouveaux utilisateurs
+        if ($isNewUser && $password) {
+            $message .= "\n\nVos identifiants de connexion:\n" .
+                "Email: " . $user->email . "\n" .
+                "Mot de passe: " . $password;
+        }
+
+        return rawurlencode($message);
     }
 
     /**
@@ -380,10 +683,8 @@ class ShipmentController extends Controller
         try {
             DB::beginTransaction();
 
-            // Supprime d'abord le destinataire
-            $shipment->recipient()->delete();
-
-            // Puis le colis
+            // Les médias et le destinataire seront supprimés automatiquement
+            // grâce à la méthode boot() du modèle Package
             $shipment->delete();
 
             DB::commit();
@@ -394,6 +695,7 @@ class ShipmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Erreur suppression expédition: ' . $e->getMessage());
             return back()->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
         }
     }
@@ -535,8 +837,6 @@ class ShipmentController extends Controller
      */
     private function scheduleFileDeletion($filePath)
     {
-        // On pourrait utiliser un job programmé, mais pour simplifier,
-        // ici nous enregistrons simplement le fichier à supprimer dans la base de données
         try {
             DB::table('temp_files')->insert([
                 'path' => $filePath,
@@ -544,7 +844,7 @@ class ShipmentController extends Controller
                 'created_at' => Carbon::now()
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la planification de suppression du fichier: ' . $e->getMessage());
+            Log::error('Erreur lors de la planification de suppression du fichier: ' . $e->getMessage());
         }
     }
 
@@ -625,7 +925,7 @@ class ShipmentController extends Controller
 
     private function createPackage($userId, array $data)
     {
-        // Création du colis
+        // Création du colis avec les médias
         $package = Package::create([
             'user_id' => $userId,
             'tracking_number' => $this->generateTrackingNumber(),
@@ -633,7 +933,9 @@ class ShipmentController extends Controller
             'destination_address' => $data['destination_address'],
             'description_colis' => $data['description_colis'],
             'price' => $data['price'],
-            'status' => 'registered'
+            'status' => 'registered',
+            'images' => $data['images'] ?? [],
+            'videos' => $data['videos'] ?? []
         ]);
 
         // Création du destinataire associé
@@ -669,11 +971,268 @@ class ShipmentController extends Controller
                     'price' => $package->price,
                     'destination' => $package->destination_address,
                     'weight' => $package->weight,
-                    'description' => $package->description_colis
+                    'description' => $package->description_colis,
+                    'media_count' => $package->getMediaCount()
                 ]
             ];
         }
 
         return $shipment;
+    }
+
+    /**
+     * API endpoints pour la gestion des médias
+     */
+
+    /**
+     * Retourne les URLs des médias d'un package en JSON
+     */
+    public function getPackageMedia(Package $package)
+    {
+        try {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'images' => $package->getImageUrls(),
+                    'videos' => $package->getVideoUrls(),
+                    'count' => $package->getMediaCount()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération médias: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des médias'
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload d'un média unique (pour AJAX)
+     */
+    public function uploadSingleMedia(Request $request, Package $package)
+    {
+        $validated = $request->validate([
+            'file' => 'required|file|max:10240',
+            'type' => 'required|in:image,video'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $file = $request->file('file');
+            $type = $validated['type'];
+
+            // Validation spécifique selon le type
+            if ($type === 'image') {
+                $request->validate([
+                    'file' => 'image|mimes:jpeg,png,jpg,gif'
+                ]);
+            } else {
+                $request->validate([
+                    'file' => 'mimes:mp4,mov,avi,wmv'
+                ]);
+            }
+
+            // Générer le nom de fichier et stocker
+            $filename = $this->generateMediaFilename($file, $type);
+            $folderPath = $type === 'image' ? 'packages/images' : 'packages/videos';
+            $path = $file->storeAs($folderPath, $filename, 'public');
+
+            if (!$path) {
+                throw new \Exception('Erreur lors de la sauvegarde du fichier');
+            }
+
+            // Mettre à jour le package
+            if ($type === 'image') {
+                $images = $package->images ?? [];
+                $images[] = $path;
+                $package->images = $images;
+            } else {
+                $videos = $package->videos ?? [];
+                $videos[] = $path;
+                $package->videos = $videos;
+            }
+
+            $package->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Fichier uploadé avec succès',
+                'data' => [
+                    'path' => $path,
+                    'url' => Storage::url($path),
+                    'type' => $type,
+                    'index' => count($type === 'image' ? $package->images : $package->videos) - 1
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur upload média unique: ' . $e->getMessage());
+
+            // Nettoyer le fichier si l'upload a échoué
+            if (isset($path) && $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Réorganise l'ordre des médias
+     */
+    public function reorderMedia(Request $request, Package $package)
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:images,videos',
+            'order' => 'required|array',
+            'order.*' => 'integer|min:0'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $type = $validated['type'];
+            $newOrder = $validated['order'];
+
+            $currentMedia = $type === 'images' ? ($package->images ?? []) : ($package->videos ?? []);
+
+            // Vérifier que tous les indices sont valides
+            foreach ($newOrder as $index) {
+                if (!isset($currentMedia[$index])) {
+                    throw new \Exception('Index de média invalide: ' . $index);
+                }
+            }
+
+            // Réorganiser selon le nouvel ordre
+            $reorderedMedia = [];
+            foreach ($newOrder as $index) {
+                $reorderedMedia[] = $currentMedia[$index];
+            }
+
+            // Mettre à jour le package
+            if ($type === 'images') {
+                $package->images = $reorderedMedia;
+            } else {
+                $package->videos = $reorderedMedia;
+            }
+
+            $package->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ordre des médias mis à jour avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur réorganisation médias: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la réorganisation: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Nettoie les anciens fichiers temporaires
+     */
+    public function cleanupTempFiles()
+    {
+        try {
+            $expiredFiles = DB::table('temp_files')
+                ->where('expires_at', '<', Carbon::now())
+                ->get();
+
+            foreach ($expiredFiles as $file) {
+                if (file_exists($file->path)) {
+                    unlink($file->path);
+                }
+
+                DB::table('temp_files')
+                    ->where('id', $file->id)
+                    ->delete();
+            }
+
+            Log::info('Nettoyage des fichiers temporaires terminé. ' . count($expiredFiles) . ' fichiers supprimés.');
+
+            return response()->json([
+                'success' => true,
+                'message' => count($expiredFiles) . ' fichiers temporaires supprimés'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur lors du nettoyage des fichiers temporaires: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du nettoyage'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtient les statistiques sur l'utilisation du stockage
+     */
+    public function getStorageStats()
+    {
+        try {
+            $packages = Package::all();
+            $totalImages = 0;
+            $totalVideos = 0;
+            $totalSize = 0;
+
+            foreach ($packages as $package) {
+                if ($package->images) {
+                    $totalImages += count($package->images);
+                    foreach ($package->images as $imagePath) {
+                        $fullPath = storage_path('app/public/' . $imagePath);
+                        if (file_exists($fullPath)) {
+                            $totalSize += filesize($fullPath);
+                        }
+                    }
+                }
+
+                if ($package->videos) {
+                    $totalVideos += count($package->videos);
+                    foreach ($package->videos as $videoPath) {
+                        $fullPath = storage_path('app/public/' . $videoPath);
+                        if (file_exists($fullPath)) {
+                            $totalSize += filesize($fullPath);
+                        }
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_packages' => $packages->count(),
+                    'total_images' => $totalImages,
+                    'total_videos' => $totalVideos,
+                    'total_size_bytes' => $totalSize,
+                    'total_size_mb' => round($totalSize / (1024 * 1024), 2),
+                    'average_media_per_package' => $packages->count() > 0 ? round(($totalImages + $totalVideos) / $packages->count(), 2) : 0
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur calcul statistiques stockage: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du calcul des statistiques'
+            ], 500);
+        }
     }
 }

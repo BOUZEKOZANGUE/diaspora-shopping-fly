@@ -142,7 +142,7 @@
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                         <!-- Form with multi-step navigation -->
-                        <form id="shipping-form" action="{{ route('admin.shipments.store') }}" method="POST">
+                        <form action="{{ route('admin.shipments.store') }}" method="POST" class="space-y-5" enctype="multipart/form-data">
                             @csrf
 
                             <!-- Step tabs navigation for mobile -->

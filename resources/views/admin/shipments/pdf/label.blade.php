@@ -47,8 +47,8 @@
 <body>
     <div class="label-container">
         <div class="logo-section">
-            <h1 style="color: #0077be;">DSF Express</h1>
-            <p>Service de Livraison Express</p>
+            <h1 style="color: #0077be;">Diaspora shopping and fly</h1>
+            <p></p>
         </div>
 
         <div class="tracking-number">

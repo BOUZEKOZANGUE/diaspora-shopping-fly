@@ -70,6 +70,22 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/packages/{package}/label', [AdminPackageController::class, 'generateLabel'])->name('packages.label');
     Route::post('/packages/batch-action', [AdminPackageController::class, 'batchAction'])->name('packages.batch-action');
 
+    // Routes pour la gestion des colis
+    // Routes pour les médias
+    Route::get('/packages/{package}/media/{type}/{index}', [ShipmentController::class, 'showMedia'])
+        ->name('admin.packages.media.show');
+    Route::delete('/packages/{package}/media/{type}/{index}', [ShipmentController::class, 'deleteMedia'])
+        ->name('admin.packages.media.delete');
+    Route::post('/packages/{package}/media', [ShipmentController::class, 'addMedia'])
+        ->name('admin.packages.media.add');
+
+    // API endpoints
+    Route::get('/api/packages/{package}/media', [ShipmentController::class, 'getPackageMedia']);
+    Route::post('/api/packages/{package}/media/upload', [ShipmentController::class, 'uploadSingleMedia']);
+    Route::put('/api/packages/{package}/media/reorder', [ShipmentController::class, 'reorderMedia']);
+    Route::get('/api/storage/stats', [ShipmentController::class, 'getStorageStats']);
+    Route::post('/api/cleanup-temp-files', [ShipmentController::class, 'cleanupTempFiles']);
+
     // Ressources administratives
     Route::resources([
         'advantages' => AdminAdvantageController::class,

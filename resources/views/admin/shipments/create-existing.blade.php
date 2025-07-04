@@ -238,7 +238,8 @@
 
                 <!-- Formulaire Principal optimisé -->
                 <div id="form-tab" class="w-full flex-1 hidden md:block">
-                    <form action="{{ route('admin.shipments.store-existing') }}" method="POST" class="space-y-5">
+                    <!-- CORRECTION IMPORTANTE : Ajout de enctype="multipart/form-data" pour l'upload de fichiers -->
+                    <form action="{{ route('admin.shipments.store-existing') }}" method="POST" class="space-y-5" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="user_id" id="user_id" required>
 
@@ -322,20 +323,23 @@
                                             <div class="relative">
                                                 <textarea name="description_colis" id="description_colis" rows="3" placeholder=" " required
                                                     class="w-full px-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm resize-none"
-                                                    maxlength="500"></textarea>
+                                                    maxlength="500">{{ old('description_colis') }}</textarea>
                                                 <label for="description_colis" class="text-xs sm:text-sm">Description
                                                     du colis</label>
                                                 <div class="absolute bottom-2 right-3 text-xs text-gray-400">
                                                     <span id="char-count">0</span>/500
                                                 </div>
                                             </div>
+                                            @error('description_colis')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                     <div class="space-y-4">
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <input type="number" name="weight" id="weight" step="0.1"
-                                                    placeholder=" " required min="0.1"
+                                                    placeholder=" " required min="0.1" value="{{ old('weight') }}"
                                                     class="w-full px-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 pr-12 text-sm">
                                                 <div
                                                     class="absolute right-3 top-0 bottom-0 flex items-center pointer-events-none">
@@ -343,11 +347,14 @@
                                                 </div>
                                                 <label for="weight" class="text-xs sm:text-sm">Poids</label>
                                             </div>
+                                            @error('weight')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <input type="number" name="price" id="price" step="0.01"
-                                                    placeholder=" " required min="0.01"
+                                                    placeholder=" " required min="0.01" value="{{ old('price') }}"
                                                     class="w-full px-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 pr-12 text-sm">
                                                 <div
                                                     class="absolute right-3 top-0 bottom-0 flex items-center pointer-events-none">
@@ -355,14 +362,19 @@
                                                 </div>
                                                 <label for="price" class="text-xs sm:text-sm">Prix</label>
                                             </div>
+                                            @error('price')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
 
-                                    <!-- Section Upload d'Images -->
+                                    <!-- Section Upload d'Images CORRIGÉE -->
                                     <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-3">
                                             <i class="fas fa-camera mr-2 text-[#0077be]"></i>
                                             Photos du colis
+                                            <span class="text-red-500">*</span>
+                                            <span class="text-xs text-gray-500 font-normal">(Au moins une image ou vidéo requise)</span>
                                         </label>
 
                                         <!-- Zone de drop pour les images -->
@@ -377,10 +389,11 @@
                                                     <i class="fas fa-camera mr-2"></i>
                                                     Prendre/Choisir des photos
                                                 </button>
+                                                <!-- CORRECTION : Changement de accept pour être plus spécifique -->
                                                 <input type="file" id="images-input" name="images[]" multiple
-                                                    accept="image/*" capture="environment" class="hidden">
+                                                    accept="image/jpeg,image/png,image/jpg,image/gif" class="hidden">
                                                 <p class="text-xs text-gray-500 mt-2">JPEG, PNG, JPG, GIF jusqu'à 10MB
-                                                    chacune</p>
+                                                    chacune (max 10 images)</p>
                                             </div>
                                         </div>
 
@@ -388,13 +401,25 @@
                                         <div id="image-preview"
                                             class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 hidden">
                                         </div>
+
+                                        <!-- Message d'erreur pour les images -->
+                                        @error('images')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                        @error('images.*')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                        @error('media')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
 
-                                    <!-- Section Upload de Vidéos -->
+                                    <!-- Section Upload de Vidéos CORRIGÉE -->
                                     <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-3">
                                             <i class="fas fa-video mr-2 text-[#0077be]"></i>
                                             Vidéos du colis
+                                            <span class="text-xs text-gray-500 font-normal">(Optionnel si images ajoutées)</span>
                                         </label>
 
                                         <!-- Zone de drop pour les vidéos -->
@@ -409,16 +434,25 @@
                                                     <i class="fas fa-video mr-2"></i>
                                                     Filmer/Choisir des vidéos
                                                 </button>
+                                                <!-- CORRECTION : Changement de accept pour être plus spécifique -->
                                                 <input type="file" id="videos-input" name="videos[]" multiple
-                                                    accept="video/*" capture="environment" class="hidden">
+                                                    accept="video/mp4,video/mov,video/avi,video/wmv" class="hidden">
                                                 <p class="text-xs text-gray-500 mt-2">MP4, AVI, MOV, WMV jusqu'à 10MB
-                                                    chacune</p>
+                                                    chacune (max 5 vidéos)</p>
                                             </div>
                                         </div>
 
                                         <!-- Prévisualisation des vidéos -->
                                         <div id="video-preview"
                                             class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 hidden"></div>
+
+                                        <!-- Message d'erreur pour les vidéos -->
+                                        @error('videos')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
+                                        @error('videos.*')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -439,7 +473,7 @@
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <input type="text" name="recipient_name" id="recipient_name"
-                                                    placeholder=" " required
+                                                    placeholder=" " required value="{{ old('recipient_name') }}"
                                                     class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm">
                                                 <div
                                                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -448,11 +482,14 @@
                                                 <label for="recipient_name" class="text-xs sm:text-sm pl-6">Nom
                                                     complet</label>
                                             </div>
+                                            @error('recipient_name')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <input type="tel" name="recipient_phone" id="recipient_phone"
-                                                    placeholder=" " required
+                                                    placeholder=" " required value="{{ old('recipient_phone') }}"
                                                     class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm"
                                                     pattern="^\+[1-9]\d{1,14}$">
                                                 <div
@@ -467,6 +504,9 @@
                                                 <span
                                                     class="text-xs font-medium text-gray-700 ml-1 bg-gray-100 px-1.5 py-0.5 rounded">+33612345678</span>
                                             </div>
+                                            @error('recipient_phone')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                     <div class="space-y-4">
@@ -475,9 +515,9 @@
                                                 <select name="country" id="country" required
                                                     class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm">
                                                     <option value="">Sélectionnez un pays</option>
-                                                    <option value="France">France</option>
-                                                    <option value="Cameroun">Cameroun</option>
-                                                    <option value="Belgique">Belgique</option>
+                                                    <option value="France" {{ old('country') == 'France' ? 'selected' : '' }}>France</option>
+                                                    <option value="Cameroun" {{ old('country') == 'Cameroun' ? 'selected' : '' }}>Cameroun</option>
+                                                    <option value="Belgique" {{ old('country') == 'Belgique' ? 'selected' : '' }}>Belgique</option>
                                                 </select>
                                                 <div
                                                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -485,11 +525,14 @@
                                                 </div>
                                                 <label for="country" class="text-xs sm:text-sm pl-6">Pays</label>
                                             </div>
+                                            @error('country')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <input type="text" name="city" id="city" placeholder=" "
-                                                    required
+                                                    required value="{{ old('city') }}"
                                                     class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm">
                                                 <div
                                                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -497,11 +540,14 @@
                                                 </div>
                                                 <label for="city" class="text-xs sm:text-sm pl-6">Ville</label>
                                             </div>
+                                            @error('city')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <textarea name="destination_address" id="destination_address" rows="3" placeholder=" " required
-                                                    class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm"></textarea>
+                                                    class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm">{{ old('destination_address') }}</textarea>
                                                 <div
                                                     class="absolute top-2.5 left-0 pl-3 flex items-start pointer-events-none">
                                                     <i class="fas fa-map-marker-alt text-gray-400"></i>
@@ -511,6 +557,9 @@
                                             </div>
                                             <p class="mt-1 text-xs text-gray-500 pl-1">Incluez le numéro, la rue, le
                                                 code postal et tout complément d'adresse</p>
+                                            @error('destination_address')
+                                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -814,6 +863,15 @@
         button:disabled {
             opacity: 0.65;
         }
+
+        /* Styles pour la validation côté client */
+        .has-media .border-red-500 {
+            border-color: #10b981 !important;
+        }
+
+        .media-required {
+            border-color: #ef4444 !important;
+        }
     </style>
 
     <script>
@@ -926,7 +984,7 @@
 
             // Initialisation améliorée des sélecteurs de ville et pays
             if (countrySelect) {
-                // Pré-sélectionner la France par défaut
+                // Pré-sélectionner la France par défaut si aucune valeur n'est présente
                 if (countrySelect.value === '') {
                     countrySelect.value = 'France';
                     // Déclencher un événement change pour mettre à jour les villes associées
@@ -979,7 +1037,9 @@
 
                 selectedUserInfo.classList.remove('hidden');
                 noUserSelected.classList.add('hidden');
-                submitButton.disabled = false;
+
+                // Valider si on peut activer le bouton submit
+                validateForm();
             }
 
             // Recherche améliorée et optimisée
@@ -1190,6 +1250,29 @@
                 });
             }
 
+            // Fonction de validation du formulaire
+            function validateForm() {
+                const hasUser = userIdInput.value !== '';
+                const hasImages = selectedImages.length > 0;
+                const hasVideos = selectedVideos.length > 0;
+                const hasMedia = hasImages || hasVideos;
+
+                // Le bouton submit n'est activé que si un utilisateur est sélectionné et qu'il y a des médias
+                if (hasUser && hasMedia) {
+                    submitButton.disabled = false;
+                    // Retirer les styles d'erreur des zones de médias
+                    document.getElementById('image-drop-zone').classList.remove('media-required');
+                    document.getElementById('video-drop-zone').classList.remove('media-required');
+                } else {
+                    submitButton.disabled = true;
+                    // Ajouter des styles d'erreur si nécessaire
+                    if (hasUser && !hasMedia) {
+                        document.getElementById('image-drop-zone').classList.add('media-required');
+                        document.getElementById('video-drop-zone').classList.add('media-required');
+                    }
+                }
+            }
+
             // Event Listeners
             let searchTimeout;
             if (userSearch) {
@@ -1358,7 +1441,14 @@
                 });
 
                 // Gestion de l'état de soumission du formulaire
-                form.addEventListener('submit', function() {
+                form.addEventListener('submit', function(e) {
+                    // Vérification finale des médias
+                    if (selectedImages.length === 0 && selectedVideos.length === 0) {
+                        e.preventDefault();
+                        alert('Veuillez ajouter au moins une image ou une vidéo du colis.');
+                        return false;
+                    }
+
                     // Désactiver le bouton et afficher l'état de chargement
                     submitButton.disabled = true;
                     submitText.textContent = 'Création en cours...';
@@ -1397,9 +1487,7 @@
 
             adjustForSmallScreens();
             window.addEventListener('resize', adjustForSmallScreens);
-        });
 
-        document.addEventListener('DOMContentLoaded', function() {
             // Variables pour la gestion des médias
             const imageInput = document.getElementById('images-input');
             const videoInput = document.getElementById('videos-input');
@@ -1410,8 +1498,8 @@
             const imagePreview = document.getElementById('image-preview');
             const videoPreview = document.getElementById('video-preview');
 
-            let selectedImages = [];
-            let selectedVideos = [];
+            window.selectedImages = [];
+            window.selectedVideos = [];
 
             // Gestionnaire pour le bouton de sélection d'images
             if (selectImagesBtn && imageInput) {
@@ -1420,7 +1508,7 @@
                 });
 
                 imageInput.addEventListener('change', function(e) {
-                    handleImageFiles(e.target.files);
+                    handleImageFiles(Array.from(e.target.files));
                 });
             }
 
@@ -1431,7 +1519,7 @@
                 });
 
                 videoInput.addEventListener('change', function(e) {
-                    handleVideoFiles(e.target.files);
+                    handleVideoFiles(Array.from(e.target.files));
                 });
             }
 
@@ -1489,9 +1577,18 @@
 
             // Fonction pour gérer les fichiers images
             function handleImageFiles(files) {
-                Array.from(files).forEach(file => {
+                const maxImages = 10;
+                const maxSize = 10 * 1024 * 1024; // 10MB
+
+                files.forEach(file => {
+                    // Vérifier le nombre maximum
+                    if (window.selectedImages.length >= maxImages) {
+                        alert(`Maximum ${maxImages} images autorisées.`);
+                        return;
+                    }
+
                     // Vérifier la taille (10MB max)
-                    if (file.size > 10 * 1024 * 1024) {
+                    if (file.size > maxSize) {
                         alert(`L'image "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
                         return;
                     }
@@ -1502,19 +1599,29 @@
                         return;
                     }
 
-                    selectedImages.push(file);
-                    displayImagePreview(file, selectedImages.length - 1);
+                    window.selectedImages.push(file);
+                    displayImagePreview(file, window.selectedImages.length - 1);
                 });
 
                 updateImageInput();
                 toggleImagePreview();
+                validateForm(); // Revalidate après ajout d'images
             }
 
             // Fonction pour gérer les fichiers vidéos
             function handleVideoFiles(files) {
-                Array.from(files).forEach(file => {
+                const maxVideos = 5;
+                const maxSize = 10 * 1024 * 1024; // 10MB
+
+                files.forEach(file => {
+                    // Vérifier le nombre maximum
+                    if (window.selectedVideos.length >= maxVideos) {
+                        alert(`Maximum ${maxVideos} vidéos autorisées.`);
+                        return;
+                    }
+
                     // Vérifier la taille (10MB max)
-                    if (file.size > 10 * 1024 * 1024) {
+                    if (file.size > maxSize) {
                         alert(`La vidéo "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
                         return;
                     }
@@ -1525,12 +1632,13 @@
                         return;
                     }
 
-                    selectedVideos.push(file);
-                    displayVideoPreview(file, selectedVideos.length - 1);
+                    window.selectedVideos.push(file);
+                    displayVideoPreview(file, window.selectedVideos.length - 1);
                 });
 
                 updateVideoInput();
                 toggleVideoPreview();
+                validateForm(); // Revalidate après ajout de vidéos
             }
 
             // Afficher la prévisualisation d'une image
@@ -1580,20 +1688,20 @@
             // Mettre à jour l'input des images
             function updateImageInput() {
                 const dt = new DataTransfer();
-                selectedImages.forEach(file => dt.items.add(file));
+                window.selectedImages.forEach(file => dt.items.add(file));
                 imageInput.files = dt.files;
             }
 
             // Mettre à jour l'input des vidéos
             function updateVideoInput() {
                 const dt = new DataTransfer();
-                selectedVideos.forEach(file => dt.items.add(file));
+                window.selectedVideos.forEach(file => dt.items.add(file));
                 videoInput.files = dt.files;
             }
 
             // Afficher/masquer la prévisualisation des images
             function toggleImagePreview() {
-                if (selectedImages.length > 0) {
+                if (window.selectedImages.length > 0) {
                     imagePreview.classList.remove('hidden');
                 } else {
                     imagePreview.classList.add('hidden');
@@ -1602,7 +1710,7 @@
 
             // Afficher/masquer la prévisualisation des vidéos
             function toggleVideoPreview() {
-                if (selectedVideos.length > 0) {
+                if (window.selectedVideos.length > 0) {
                     videoPreview.classList.remove('hidden');
                 } else {
                     videoPreview.classList.add('hidden');
@@ -1611,47 +1719,26 @@
 
             // Fonctions globales pour la suppression (accessibles depuis le HTML)
             window.removeImage = function(index) {
-                selectedImages.splice(index, 1);
+                window.selectedImages.splice(index, 1);
                 imagePreview.innerHTML = '';
-                selectedImages.forEach((file, newIndex) => {
+                window.selectedImages.forEach((file, newIndex) => {
                     displayImagePreview(file, newIndex);
                 });
                 updateImageInput();
                 toggleImagePreview();
+                validateForm(); // Revalidate après suppression
             };
 
             window.removeVideo = function(index) {
-                selectedVideos.splice(index, 1);
+                window.selectedVideos.splice(index, 1);
                 videoPreview.innerHTML = '';
-                selectedVideos.forEach((file, newIndex) => {
+                window.selectedVideos.forEach((file, newIndex) => {
                     displayVideoPreview(file, newIndex);
                 });
                 updateVideoInput();
                 toggleVideoPreview();
+                validateForm(); // Revalidate après suppression
             };
-
-            // Validation avant soumission du formulaire
-            const existingForm = document.querySelector('form[action*="store-existing"]');
-            if (existingForm) {
-                existingForm.addEventListener('submit', function(e) {
-                    // Vérifier que les fichiers ne dépassent pas les limites
-                    for (let file of selectedImages) {
-                        if (file.size > 10 * 1024 * 1024) {
-                            e.preventDefault();
-                            alert('Une ou plusieurs images dépassent la taille maximale de 10MB.');
-                            return;
-                        }
-                    }
-
-                    for (let file of selectedVideos) {
-                        if (file.size > 10 * 1024 * 1024) {
-                            e.preventDefault();
-                            alert('Une ou plusieurs vidéos dépassent la taille maximale de 10MB.');
-                            return;
-                        }
-                    }
-                });
-            }
         });
     </script>
 </x-app-layout>

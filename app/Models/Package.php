@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use App\Models\User;
 use App\Models\Tracking;
 use App\Models\Recipient;
@@ -57,31 +58,101 @@ class Package extends Model
     }
 
     /**
-     * Get image URLs
+     * Get image URLs - MÉTHODE CORRIGÉE
      */
     public function getImageUrls(): array
     {
-        if (!$this->images) {
+        if (!$this->images || empty($this->images)) {
             return [];
         }
 
-        return array_map(function ($image) {
-            return Storage::url($image);
-        }, $this->images);
+        $imageUrls = [];
+        foreach ($this->images as $imagePath) {
+            // Méthode 1: Essayer avec Storage::url() (préférable)
+            $url = Storage::url($imagePath);
+
+            // Méthode 2: Si le lien symbolique ne fonctionne pas, construire l'URL manuellement
+            if (!$this->urlExists($url)) {
+                $url = asset('storage/' . $imagePath);
+
+                // Méthode 3: En dernier recours, utiliser une route dédiée
+                if (!$this->urlExists($url)) {
+                    $url = route('package.media', [
+                        'package' => $this->id,
+                        'type' => 'image',
+                        'index' => array_search($imagePath, $this->images)
+                    ]);
+                }
+            }
+
+            $imageUrls[] = $url;
+        }
+
+        return $imageUrls;
     }
 
     /**
-     * Get video URLs
+     * Get video URLs - MÉTHODE CORRIGÉE
      */
     public function getVideoUrls(): array
     {
-        if (!$this->videos) {
+        if (!$this->videos || empty($this->videos)) {
             return [];
         }
 
-        return array_map(function ($video) {
-            return Storage::url($video);
-        }, $this->videos);
+        $videoUrls = [];
+        foreach ($this->videos as $videoPath) {
+            // Méthode 1: Essayer avec Storage::url() (préférable)
+            $url = Storage::url($videoPath);
+
+            // Méthode 2: Si le lien symbolique ne fonctionne pas, construire l'URL manuellement
+            if (!$this->urlExists($url)) {
+                $url = asset('storage/' . $videoPath);
+
+                // Méthode 3: En dernier recours, utiliser une route dédiée
+                if (!$this->urlExists($url)) {
+                    $url = route('package.media', [
+                        'package' => $this->id,
+                        'type' => 'video',
+                        'index' => array_search($videoPath, $this->videos)
+                    ]);
+                }
+            }
+
+            $videoUrls[] = $url;
+        }
+
+        return $videoUrls;
+    }
+
+    /**
+     * Vérifier si une URL existe (méthode simple)
+     */
+    private function urlExists($url): bool
+    {
+        // Convertir l'URL en chemin de fichier
+        $path = str_replace(asset('storage/'), '', $url);
+        $fullPath = storage_path('app/public/' . $path);
+
+        return File::exists($fullPath);
+    }
+
+    /**
+     * Get the first image URL for thumbnail
+     */
+    public function getFirstImageUrl(): ?string
+    {
+        $imageUrls = $this->getImageUrls();
+        return !empty($imageUrls) ? $imageUrls[0] : null;
+    }
+
+    /**
+     * Get the first video URL
+     */
+    public function getFirstVideoUrl(): ?string
+    {
+        $videoUrls = $this->getVideoUrls();
+        return !empty($videoUrls) ? $videoUrls[0] : null;
     }
 
     /**
