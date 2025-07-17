@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Notifications\ColisConfirmation;
+use App\Notifications\RecipientNotification;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class ShipmentController extends Controller
 {
@@ -139,6 +142,7 @@ class ShipmentController extends Controller
         $validated = $request->validate([
             'sender_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'notification_email' => 'nullable|email', // ✅ Email de notification optionnel
             'weight' => 'required|numeric|min:0.1',
             'price' => 'required|numeric|min:0',
             'country' => 'required|string|in:France,Cameroun,Belgique',
@@ -147,6 +151,7 @@ class ShipmentController extends Controller
             'description_colis' => 'required|string',
             'recipient_name' => 'required|string|max:255',
             'recipient_phone' => 'required|string|max:20',
+            'recipient_email' => 'nullable|email', // Email destinataire optionnel
             'images' => 'nullable|array|max:10',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max par image
             'videos' => 'nullable|array|max:5',
@@ -203,11 +208,13 @@ class ShipmentController extends Controller
                     'name' => $user->name,
                     'email' => $dsfEmail,
                     'password' => $defaultPassword,
-                    'phone' => $user->phone
+                    'phone' => $user->phone,
+                    'notification_email' => $validated['notification_email'] ?? null // ✅ Email de notification
                 ],
                 'recipient' => [
                     'name' => $package->recipient->name,
-                    'phone' => $package->recipient->phone
+                    'phone' => $package->recipient->phone,
+                    'email' => $validated['recipient_email'] ?? null
                 ],
                 'package' => [
                     'tracking' => $package->tracking_number,
@@ -223,30 +230,8 @@ class ShipmentController extends Controller
 
             DB::commit();
 
-            // Envoyer la notification par email
-            try {
-                $user->notify(new ColisConfirmation($shipmentData));
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
-                // Continuer malgré l'erreur d'email
-            }
-
-            try {
-                // Générer le PDF pour WhatsApp
-                $isNewUser = true;
-                $view = 'admin.shipments.pdf.pdf-new-user';
-                $pdfFile = $this->generatePdfForWhatsApp($shipmentData, $view);
-
-                session()->flash('pdf_path', $pdfFile);
-                session()->flash('pdf_filename', basename($pdfFile));
-
-                // Créer le message WhatsApp
-                $whatsappMessage = $this->createWhatsAppMessage($user, $package, $validated, true, $defaultPassword);
-                $whatsappLink = "https://wa.me/" . $this->formatPhoneForWhatsApp($user->phone, $validated['country']) . "?text=" . $whatsappMessage;
-                session()->flash('whatsapp_link', $whatsappLink);
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
-            }
+            // ENVOI AUTOMATIQUE DES NOTIFICATIONS
+            $this->sendAllNotifications($shipmentData, $package, $validated, true, $defaultPassword);
 
             return redirect()->route('admin.shipments.success');
 
@@ -278,6 +263,7 @@ class ShipmentController extends Controller
             'description_colis' => 'required|string',
             'recipient_name' => 'required|string|max:255',
             'recipient_phone' => 'required|string|max:20',
+            'recipient_email' => 'nullable|email', // Email destinataire optionnel
             'images' => 'nullable|array|max:10',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max par image
             'videos' => 'nullable|array|max:5',
@@ -329,7 +315,8 @@ class ShipmentController extends Controller
                 ],
                 'recipient' => [
                     'name' => $package->recipient->name,
-                    'phone' => $package->recipient->phone
+                    'phone' => $package->recipient->phone,
+                    'email' => $validated['recipient_email'] ?? null
                 ],
                 'package' => [
                     'tracking' => $package->tracking_number,
@@ -345,29 +332,8 @@ class ShipmentController extends Controller
 
             DB::commit();
 
-            // Envoyer la notification par email
-            try {
-                $user->notify(new ColisConfirmation($shipmentData));
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
-            }
-
-            try {
-                // Générer le PDF pour WhatsApp
-                $isNewUser = false;
-                $view = 'admin.shipments.pdf.pdf-existing-user';
-                $pdfFile = $this->generatePdfForWhatsApp($shipmentData, $view);
-
-                session()->flash('pdf_path', $pdfFile);
-                session()->flash('pdf_filename', basename($pdfFile));
-
-                // Créer le message WhatsApp
-                $whatsappMessage = $this->createWhatsAppMessage($user, $package, $validated, false);
-                $whatsappLink = "https://wa.me/" . $this->formatPhoneForWhatsApp($user->phone, $validated['country']) . "?text=" . $whatsappMessage;
-                session()->flash('whatsapp_link', $whatsappLink);
-            } catch (\Exception $e) {
-                Log::error('Erreur lors de la préparation du PDF pour WhatsApp: ' . $e->getMessage());
-            }
+            // ENVOI AUTOMATIQUE DES NOTIFICATIONS
+            $this->sendAllNotifications($shipmentData, $package, $validated, false);
 
             return redirect()->route('admin.shipments.success');
 
@@ -383,6 +349,413 @@ class ShipmentController extends Controller
                 ->with('error', 'Erreur lors de la création : ' . $e->getMessage());
         }
     }
+
+    /**
+     * ====================================================================
+     * MÉTHODES DE NOTIFICATION AUTOMATIQUE - ✅ MODIFIÉES
+     * ====================================================================
+     */
+
+    /**
+     * ✅ MÉTHODE PRINCIPALE MODIFIÉE - Envoie toutes les notifications automatiquement
+     */
+    private function sendAllNotifications($shipmentData, $package, $validated, $isNewUser = false, $password = null)
+    {
+        try {
+            Log::info('🚀 Début envoi notifications automatiques', [
+                'tracking' => $package->tracking_number,
+                'is_new_user' => $isNewUser,
+                'has_password' => !empty($password)
+            ]);
+
+            // Vérifier si les notifications sont activées
+            if (!env('NOTIFICATIONS_ENABLED', true)) {
+                Log::info('❌ Notifications désactivées');
+                return;
+            }
+
+            // 1. ENVOI EMAIL À L'EXPÉDITEUR
+            if (env('EMAIL_ENABLED', true)) {
+                $this->sendEmailToSender($shipmentData, $isNewUser);
+
+                // ✅ NOUVEAU : Email spécial pour les identifiants si nouveau utilisateur
+                if ($isNewUser && $password && !empty($shipmentData['user']['email'])) {
+                    $this->sendCredentialsEmail($shipmentData['user']['email'], $shipmentData, $password);
+                }
+
+                // ✅ NOUVEAU : Email de notification si fourni
+                if (!empty($shipmentData['user']['notification_email'])) {
+                    $this->sendNotificationEmail($shipmentData['user']['notification_email'], $shipmentData, $password);
+                }
+            }
+
+            // 2. ENVOI EMAIL AU DESTINATAIRE (si email fourni)
+            if (env('EMAIL_ENABLED', true) && !empty($shipmentData['recipient']['email'])) {
+                $this->sendEmailToRecipient($shipmentData);
+            }
+
+            // 3. ✅ ENVOI WHATSAPP À L'EXPÉDITEUR AVEC IDENTIFIANTS
+            if (env('WHATSAPP_ENABLED', true)) {
+                $this->sendWhatsAppToSender($shipmentData, $package, $validated, $isNewUser, $password);
+            }
+
+            // 4. ENVOI WHATSAPP AU DESTINATAIRE
+            if (env('WHATSAPP_ENABLED', true)) {
+                $this->sendWhatsAppToRecipient($shipmentData, $package, $validated);
+            }
+
+            // 5. GÉNÉRATION DU PDF POUR TÉLÉCHARGEMENT
+            $this->preparePdfForDownload($shipmentData, $isNewUser);
+
+            Log::info('✅ Toutes les notifications ont été envoyées avec succès');
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur lors de l\'envoi des notifications: ' . $e->getMessage());
+            // On ne fait pas échouer la création du colis à cause des notifications
+        }
+    }
+
+    /**
+     * Envoie l'email de confirmation à l'expéditeur
+     */
+    private function sendEmailToSender($shipmentData, $isNewUser)
+    {
+        try {
+            $user = User::where('email', $shipmentData['user']['email'])->first();
+            if ($user) {
+                $user->notify(new ColisConfirmation($shipmentData));
+                Log::info('📧 Email expéditeur envoyé', ['email' => $user->email]);
+            }
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur envoi email expéditeur: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie l'email de notification au destinataire
+     */
+    private function sendEmailToRecipient($shipmentData)
+    {
+        try {
+            $recipientEmail = $shipmentData['recipient']['email'];
+
+            // Envoie l'email au destinataire
+            Mail::send(
+                'emails.recipient-notification',
+                ['shipment' => $shipmentData],
+                function ($message) use ($recipientEmail, $shipmentData) {
+                    $message->to($recipientEmail)
+                           ->subject('Diaspora Shopping & Fly - Un colis vous a été envoyé')
+                           ->from(config('mail.from.address'), 'Diaspora Shopping & Fly');
+                }
+            );
+
+            Log::info('📧 Email destinataire envoyé', ['email' => $recipientEmail]);
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur envoi email destinataire: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Envoie l'email avec les identifiants de connexion
+     */
+    private function sendCredentialsEmail($userEmail, $shipmentData, $password)
+    {
+        try {
+            Mail::send(
+                'emails.credentials-notification',
+                [
+                    'user' => $shipmentData['user'],
+                    'password' => $password,
+                    'package' => $shipmentData['package']
+                ],
+                function ($message) use ($userEmail, $shipmentData) {
+                    $message->to($userEmail)
+                           ->subject('Diaspora Shopping & Fly - Vos identifiants de connexion')
+                           ->from(config('mail.from.address'), 'Diaspora Shopping & Fly');
+                }
+            );
+
+            Log::info('📧 Email identifiants envoyé', ['email' => $userEmail]);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur envoi email identifiants: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ MÉTHODE CORRIGÉE : Envoie l'email de notification à l'adresse fournie
+     */
+    private function sendNotificationEmail($notificationEmail, $shipmentData, $password = null)
+    {
+        try {
+            // ✅ Utiliser le bon template selon si c'est un nouveau utilisateur ou pas
+            $view = $password ? 'emails.notification-with-credentials' : 'emails.notification-simple';
+
+            Mail::send(
+                $view,
+                [
+                    'shipment' => $shipmentData,
+                    'user' => $shipmentData['user'],
+                    'password' => $password,
+                    'package' => $shipmentData['package']
+                ],
+                function ($message) use ($notificationEmail, $shipmentData, $password) {
+                    $subject = $password ?
+                        'Diaspora Shopping & Fly - Copie avec identifiants de connexion' :
+                        'Diaspora Shopping & Fly - Copie de confirmation de colis';
+
+                    $message->to($notificationEmail)
+                        ->subject($subject)
+                        ->from(config('mail.from.address'), 'Diaspora Shopping & Fly');
+                }
+            );
+
+            Log::info('📧 Email notification envoyé', [
+                'email' => $notificationEmail,
+                'template' => $view
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur envoi email notification: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ MÉTHODE MODIFIÉE : Envoie WhatsApp à l'expéditeur
+     */
+    private function sendWhatsAppToSender($shipmentData, $package, $validated, $isNewUser, $password = null)
+    {
+        try {
+            $senderPhone = $this->formatPhoneForWhatsApp($shipmentData['user']['phone'], $validated['country']);
+
+            // ✅ Message amélioré avec identifiants
+            $message = $this->createWhatsAppMessageForSender($shipmentData, $isNewUser, $password);
+
+            $this->sendWhatsAppMessage($senderPhone, $message, 'expéditeur');
+
+            // ✅ OPTIONNEL : SMS de sauvegarde si c'est un nouveau client
+            if ($isNewUser && $password) {
+                $this->sendBackupSMS($senderPhone, $shipmentData, $password);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur envoi WhatsApp expéditeur: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie WhatsApp au destinataire
+     */
+    private function sendWhatsAppToRecipient($shipmentData, $package, $validated)
+    {
+        try {
+            $recipientPhone = $this->formatPhoneForWhatsApp($shipmentData['recipient']['phone'], $validated['country']);
+            $message = $this->createWhatsAppMessageForRecipient($shipmentData);
+
+            $this->sendWhatsAppMessage($recipientPhone, $message, 'destinataire');
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur envoi WhatsApp destinataire: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envoie effectivement le message WhatsApp via API
+     */
+    private function sendWhatsAppMessage($phone, $message, $recipient_type)
+    {
+        try {
+            // Configuration WhatsApp API
+            $whatsappApiUrl = env('WHATSAPP_API_URL');
+            $whatsappToken = env('WHATSAPP_API_TOKEN');
+
+            if (!$whatsappApiUrl || !$whatsappToken) {
+                Log::warning('⚠️ Configuration WhatsApp manquante - envoi simulé', [
+                    'phone' => $phone,
+                    'type' => $recipient_type
+                ]);
+
+                // Simulation d'envoi réussi pour les tests
+                session()->flash("whatsapp_link_$recipient_type",
+                    "https://wa.me/$phone?text=" . rawurlencode($message)
+                );
+
+                return;
+            }
+
+            // Exemple d'envoi via WhatsApp Business API (Meta)
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $whatsappToken,
+                'Content-Type' => 'application/json'
+            ])->post($whatsappApiUrl, [
+                'messaging_product' => 'whatsapp',
+                'to' => $phone,
+                'type' => 'text',
+                'text' => [
+                    'body' => $message
+                ]
+            ]);
+
+            if ($response->successful()) {
+                Log::info("✅ WhatsApp envoyé avec succès au $recipient_type", [
+                    'phone' => $phone,
+                    'response' => $response->json()
+                ]);
+            } else {
+                Log::error("❌ Erreur envoi WhatsApp au $recipient_type", [
+                    'phone' => $phone,
+                    'status' => $response->status(),
+                    'response' => $response->body()
+                ]);
+
+                // En cas d'erreur API, créer un lien WhatsApp manuel
+                session()->flash("whatsapp_link_$recipient_type",
+                    "https://wa.me/$phone?text=" . rawurlencode($message)
+                );
+            }
+
+        } catch (\Exception $e) {
+            Log::error("❌ Exception envoi WhatsApp au $recipient_type: " . $e->getMessage());
+
+            // En cas d'exception, créer un lien WhatsApp manuel
+            session()->flash("whatsapp_link_$recipient_type",
+                "https://wa.me/$phone?text=" . rawurlencode($message)
+            );
+        }
+    }
+
+    /**
+     * ✅ MÉTHODE MODIFIÉE : Crée le message WhatsApp pour l'expéditeur
+     */
+    private function createWhatsAppMessageForSender($shipmentData, $isNewUser = false, $password = null)
+    {
+        $message = "🚚 *Diaspora Shopping & Fly - Confirmation d'expédition*\n\n";
+        $message .= "Bonjour *{$shipmentData['user']['name']}*,\n\n";
+        $message .= "Votre colis a été enregistré avec succès ✅\n\n";
+
+        // ✅ SECTION IDENTIFIANTS DE CONNEXION (AMÉLIORÉE)
+        if ($isNewUser && $password) {
+            $message .= "🔐 *VOS IDENTIFIANTS DE CONNEXION Diaspora Shopping & Fly :*\n";
+            $message .= "• Email : *{$shipmentData['user']['email']}*\n";
+            $message .= "• Mot de passe : *{$password}*\n";
+            $message .= "• Lien de connexion : " . url('/login') . "\n\n";
+            $message .= "⚠️ *IMPORTANT : Gardez ces informations précieusement !*\n";
+            $message .= "Vous pourrez suivre tous vos colis depuis votre espace client.\n\n";
+            $message .= "💡 *Avec votre espace client, vous pouvez :*\n";
+            $message .= "• ✅ Suivre tous vos colis en temps réel\n";
+            $message .= "• ✅ Consulter l'historique de vos expéditions\n";
+            $message .= "• ✅ Recevoir des notifications automatiques\n";
+            $message .= "• ✅ Créer de nouvelles expéditions facilement\n\n";
+        }
+
+        $message .= "📦 *DÉTAILS DU COLIS :*\n";
+        $message .= "• Numéro de suivi : *{$shipmentData['package']['tracking']}*\n";
+        $message .= "• Prix : *" . number_format($shipmentData['package']['price'], 2) . " EUR*\n";
+        $message .= "• Poids : *{$shipmentData['package']['weight']} kg*\n";
+        $message .= "• Destination : " . str_replace("\n", " ", $shipmentData['package']['destination']) . "\n\n";
+
+        // Informations sur les médias
+        $mediaCount = $shipmentData['package']['media_count'];
+        if ($mediaCount['total'] > 0) {
+            $message .= "📸 *MÉDIAS DU COLIS :* ";
+            if ($mediaCount['images'] > 0) {
+                $message .= "{$mediaCount['images']} image(s)";
+            }
+            if ($mediaCount['videos'] > 0) {
+                if ($mediaCount['images'] > 0) $message .= " et ";
+                $message .= "{$mediaCount['videos']} vidéo(s)";
+            }
+            $message .= "\n\n";
+        }
+
+        $message .= "🔍 *SUIVI DE VOTRE COLIS :*\n";
+        $message .= "Lien de suivi : " . url('/tracking/' . $shipmentData['package']['tracking']) . "\n\n";
+
+        $message .= "Merci de faire confiance à Diaspora Shopping & Fly ! 🙏\n";
+        $message .= "_Votre colis sera traité dans les plus brefs délais._\n\n";
+
+        // ✅ Support contact
+        $message .= "❓ *Besoin d'aide ?*\n";
+        $message .= "📞 +33 1 23 45 67 89\n";
+        $message .= "💬 WhatsApp Support : wa.me/33123456789";
+
+        return $message;
+    }
+
+    /**
+     * Crée le message WhatsApp pour le destinataire
+     */
+    private function createWhatsAppMessageForRecipient($shipmentData)
+    {
+        $message = "📦 *Diaspora Shopping & Fly - Colis en route pour vous!*\n\n";
+        $message .= "Bonjour *{$shipmentData['recipient']['name']}*,\n\n";
+        $message .= "Un colis vous a été envoyé par *{$shipmentData['user']['name']}* 🎁\n\n";
+        $message .= "📋 *Informations du colis:*\n";
+        $message .= "• Numéro de suivi: *{$shipmentData['package']['tracking']}*\n";
+        $message .= "• Poids: *{$shipmentData['package']['weight']} kg*\n";
+        $message .= "• Destination: " . str_replace("\n", " ", $shipmentData['package']['destination']) . "\n\n";
+
+        $message .= "🔍 *Suivez votre colis en temps réel:*\n";
+        $message .= url('/tracking/' . $shipmentData['package']['tracking']) . "\n\n";
+
+        $message .= "📱 Vous recevrez des notifications à chaque étape de la livraison.\n\n";
+        $message .= "*Diaspora Shopping & Fly* - Votre satisfaction, notre priorité! ✨\n";
+        $message .= "_Nous vous tiendrons informé(e) de l'avancement de votre colis._";
+
+        return $message;
+    }
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : SMS de sauvegarde en cas d'échec WhatsApp
+     */
+    private function sendBackupSMS($phone, $shipmentData, $password = null)
+    {
+        try {
+            // Cette méthode peut être implémentée plus tard avec un service SMS
+            // comme Twilio, Amazon SNS, etc.
+
+            $smsMessage = "Diaspora Shopping & Fly - Colis {$shipmentData['package']['tracking']} créé. ";
+
+            if ($password) {
+                $smsMessage .= "Identifiants: {$shipmentData['user']['email']} / {$password}. ";
+            }
+
+            $smsMessage .= "Suivi: " . url('/tracking/' . $shipmentData['package']['tracking']);
+
+            // TODO: Implémenter l'envoi SMS réel
+            Log::info('📱 SMS de sauvegarde préparé pour: ' . $phone, ['message' => $smsMessage]);
+
+            // ✅ Stocker le lien SMS en session pour affichage optionnel
+            session()->flash('sms_backup_message', $smsMessage);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur préparation SMS de sauvegarde: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Prépare le PDF pour téléchargement
+     */
+    private function preparePdfForDownload($shipmentData, $isNewUser)
+    {
+        try {
+            $view = $isNewUser ? 'admin.shipments.pdf.pdf-new-user' : 'admin.shipments.pdf.pdf-existing-user';
+            $pdfFile = $this->generatePdfForWhatsApp($shipmentData, $view);
+
+            session()->flash('pdf_path', $pdfFile);
+            session()->flash('pdf_filename', basename($pdfFile));
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur préparation PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ====================================================================
+     * MÉTHODES DE GESTION DES MÉDIAS
+     * ====================================================================
+     */
 
     /**
      * Gère l'upload des images et vidéos
@@ -405,7 +778,7 @@ class ShipmentController extends Controller
 
                         if ($path) {
                             $uploadedImages[] = $path;
-                            Log::info("Image uploadée: " . $path);
+                            Log::info("📷 Image uploadée: " . $path);
                         }
                     }
                 }
@@ -423,7 +796,7 @@ class ShipmentController extends Controller
 
                         if ($path) {
                             $uploadedVideos[] = $path;
-                            Log::info("Vidéo uploadée: " . $path);
+                            Log::info("📹 Vidéo uploadée: " . $path);
                         }
                     }
                 }
@@ -435,7 +808,7 @@ class ShipmentController extends Controller
             ];
 
         } catch (\Exception $e) {
-            Log::error('Erreur lors de l\'upload des médias: ' . $e->getMessage());
+            Log::error('❌ Erreur lors de l\'upload des médias: ' . $e->getMessage());
 
             // Nettoyer les fichiers partiellement uploadés
             foreach ($uploadedImages as $imagePath) {
@@ -489,7 +862,7 @@ class ShipmentController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Erreur lors du nettoyage des fichiers: ' . $e->getMessage());
+            Log::error('❌ Erreur lors du nettoyage des fichiers: ' . $e->getMessage());
         }
     }
 
@@ -520,7 +893,7 @@ class ShipmentController extends Controller
             return response()->file($path);
 
         } catch (\Exception $e) {
-            Log::error('Erreur affichage média: ' . $e->getMessage());
+            Log::error('❌ Erreur affichage média: ' . $e->getMessage());
             abort(404);
         }
     }
@@ -570,7 +943,7 @@ class ShipmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur suppression média: ' . $e->getMessage());
+            Log::error('❌ Erreur suppression média: ' . $e->getMessage());
 
             return response()->json([
                 'error' => 'Erreur lors de la suppression'
@@ -615,7 +988,7 @@ class ShipmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur ajout médias: ' . $e->getMessage());
+            Log::error('❌ Erreur ajout médias: ' . $e->getMessage());
 
             $this->cleanupUploadedFiles($request);
 
@@ -624,43 +997,178 @@ class ShipmentController extends Controller
     }
 
     /**
-     * Crée le message WhatsApp
+     * ====================================================================
+     * MÉTHODES UTILITAIRES
+     * ====================================================================
      */
-    private function createWhatsAppMessage($user, $package, $validated, $isNewUser = false, $password = null)
+
+    /**
+     * Formater le numéro de téléphone pour WhatsApp selon le pays
+     */
+    private function formatPhoneForWhatsApp($phone, $country = 'France')
     {
-        $message = "DSF Express - Confirmation d'expedition\n\n" .
-            "Bonjour " . $user->name . ",\n\n" .
-            "Votre colis a ete enregistre avec succes.\n" .
-            "Numero de suivi: " . $package->tracking_number . "\n" .
-            "Prix: " . number_format($package->price, 2) . " EUR\n" .
-            "Poids: " . $package->weight . " kg\n\n" .
-            "Destination: " . str_replace("\n", " ", $validated['destination_address']) . "\n\n";
+        // Supprimer les caractères non numériques
+        $phone = preg_replace('/[^0-9]/', '', $phone);
 
-        // Ajouter les informations sur les médias
-        $mediaCount = $package->getMediaCount();
-        if ($mediaCount['total'] > 0) {
-            $message .= "Medias du colis: ";
-            if ($mediaCount['images'] > 0) {
-                $message .= $mediaCount['images'] . " image(s)";
-            }
-            if ($mediaCount['videos'] > 0) {
-                if ($mediaCount['images'] > 0) $message .= " et ";
-                $message .= $mediaCount['videos'] . " video(s)";
-            }
-            $message .= "\n\n";
+        // Formater selon le pays
+        switch ($country) {
+            case 'France':
+                // Format français: +33 6/7 XX XX XX XX
+                if (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
+                    $phone = '33' . substr($phone, 1);
+                }
+                break;
+
+            case 'Cameroun':
+                // Format camerounais: +237 XX XX XX XX
+                if (strlen($phone) == 9) {
+                    $phone = '237' . $phone;
+                } elseif (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
+                    $phone = '237' . substr($phone, 1);
+                }
+                break;
+
+            case 'Belgique':
+                // Format belge: +32 4XX XX XX XX
+                if (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
+                    $phone = '32' . substr($phone, 1);
+                } elseif (strlen($phone) == 9) {
+                    $phone = '32' . $phone;
+                }
+                break;
         }
 
-        $message .= "Pour suivre votre colis, visitez:\n" .
-            url('/tracking/' . $package->tracking_number);
+        return $phone;
+    }
 
-        // Ajouter les identifiants pour les nouveaux utilisateurs
-        if ($isNewUser && $password) {
-            $message .= "\n\nVos identifiants de connexion:\n" .
-                "Email: " . $user->email . "\n" .
-                "Mot de passe: " . $password;
+    /**
+     * Génère un email DSF unique
+     */
+    private function generateDsfEmail(string $name): string
+    {
+        $baseName = Str::slug($name);
+        $uniqueNumber = sprintf('%04d', mt_rand(0, 9999));
+        $email = "dsf.{$baseName}{$uniqueNumber}@dsf-express.com";
+
+        while (User::where('email', $email)->exists()) {
+            $uniqueNumber = sprintf('%04d', mt_rand(0, 9999));
+            $email = "dsf.{$baseName}{$uniqueNumber}@dsf-express.com";
         }
 
-        return rawurlencode($message);
+        return $email;
+    }
+
+    /**
+     * Génère un mot de passe sécurisé
+     */
+    private function generateSecurePassword(): string
+    {
+        return 'DSF' . Str::random(4) . rand(1000, 9999);
+    }
+
+    /**
+     * Génère un numéro de suivi unique
+     */
+    private function generateTrackingNumber(): string
+    {
+        $date = Carbon::now()->format('ymd');
+        $random = strtoupper(Str::random(4));
+        $number = "DSF-{$date}-{$random}";
+
+        while (Package::where('tracking_number', $number)->exists()) {
+            $random = strtoupper(Str::random(4));
+            $number = "DSF-{$date}-{$random}";
+        }
+
+        return $number;
+    }
+
+    /**
+     * Crée un nouveau colis avec ses relations
+     */
+    private function createPackage($userId, array $data)
+    {
+        // Création du colis avec les médias
+        $package = Package::create([
+            'user_id' => $userId,
+            'tracking_number' => $this->generateTrackingNumber(),
+            'weight' => $data['weight'],
+            'destination_address' => $data['destination_address'],
+            'description_colis' => $data['description_colis'],
+            'price' => $data['price'],
+            'status' => 'registered',
+            'images' => $data['images'] ?? [],
+            'videos' => $data['videos'] ?? []
+        ]);
+
+        // Création du destinataire associé
+        $package->recipient()->create([
+            'name' => $data['recipient_name'],
+            'phone' => $data['recipient_phone']
+        ]);
+
+        return $package->load('recipient');
+    }
+
+    /**
+     * ====================================================================
+     * MÉTHODES PDF ET DOCUMENTS
+     * ====================================================================
+     */
+
+    /**
+     * Génère le PDF et le sauvegarde temporairement pour WhatsApp
+     */
+    private function generatePdfForWhatsApp($shipmentData, $view)
+    {
+        // Créer le dossier temporaire si n'existe pas
+        $tempDir = storage_path('app/public/temp');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        // Générer le PDF
+        $pdf = PDF::loadView($view, ['shipment' => $shipmentData]);
+
+        // Sauvegarder le PDF dans un fichier temporaire
+        $filename = 'DSF-' . $shipmentData['package']['tracking'] . '-' . time() . '.pdf';
+        $pdfPath = $tempDir . '/' . $filename;
+        $pdf->save($pdfPath);
+
+        // Planifier la suppression du fichier après 24 heures
+        $this->scheduleFileDeletion($pdfPath);
+
+        return $pdfPath;
+    }
+
+    /**
+     * Planifie la suppression du fichier PDF temporaire
+     */
+    private function scheduleFileDeletion($filePath)
+    {
+        try {
+            DB::table('temp_files')->insert([
+                'path' => $filePath,
+                'expires_at' => Carbon::now()->addHours(24),
+                'created_at' => Carbon::now()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur lors de la planification de suppression du fichier: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Permet d'accéder au fichier PDF temporaire
+     */
+    public function getTempPdf($filename)
+    {
+        $path = storage_path('app/public/temp/' . $filename);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path);
     }
 
     /**
@@ -695,10 +1203,16 @@ class ShipmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur suppression expédition: ' . $e->getMessage());
+            Log::error('❌ Erreur suppression expédition: ' . $e->getMessage());
             return back()->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
         }
     }
+
+    /**
+     * ====================================================================
+     * MÉTHODES PDF ET RAPPORTS
+     * ====================================================================
+     */
 
     /**
      * Génère le PDF de confirmation
@@ -745,39 +1259,6 @@ class ShipmentController extends Controller
     }
 
     /**
-     * Met à jour le statut de plusieurs expéditions
-     */
-    public function bulkStatusUpdate(Request $request)
-    {
-        $validated = $request->validate([
-            'shipments' => 'required|array',
-            'shipments.*' => 'exists:packages,id',
-            'status' => 'required|in:registered,in_transit,delivered'
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            Package::whereIn('id', $validated['shipments'])
-                ->update(['status' => $validated['status']]);
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Statuts mis à jour avec succès'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la mise à jour des statuts'
-            ], 500);
-        }
-    }
-
-    /**
      * Génère une étiquette d'expédition
      */
     public function generateLabel($tracking)
@@ -794,159 +1275,8 @@ class ShipmentController extends Controller
     }
 
     /**
-     * Génère le PDF et le sauvegarde temporairement pour WhatsApp
+     * Récupère les données d'expédition
      */
-    private function generatePdfForWhatsApp($shipmentData, $view)
-    {
-        // Créer le dossier temporaire si n'existe pas
-        $tempDir = storage_path('app/public/temp');
-        if (!file_exists($tempDir)) {
-            mkdir($tempDir, 0755, true);
-        }
-
-        // Générer le PDF
-        $pdf = PDF::loadView($view, ['shipment' => $shipmentData]);
-
-        // Sauvegarder le PDF dans un fichier temporaire
-        $filename = 'DSF-' . $shipmentData['package']['tracking'] . '-' . time() . '.pdf';
-        $pdfPath = $tempDir . '/' . $filename;
-        $pdf->save($pdfPath);
-
-        // Planifier la suppression du fichier après 24 heures
-        $this->scheduleFileDeletion($pdfPath);
-
-        return $pdfPath;
-    }
-
-    /**
-     * Permet d'accéder au fichier PDF temporaire
-     */
-    public function getTempPdf($filename)
-    {
-        $path = storage_path('app/public/temp/' . $filename);
-
-        if (!file_exists($path)) {
-            abort(404);
-        }
-
-        return response()->file($path);
-    }
-
-    /**
-     * Planifie la suppression du fichier PDF temporaire
-     */
-    private function scheduleFileDeletion($filePath)
-    {
-        try {
-            DB::table('temp_files')->insert([
-                'path' => $filePath,
-                'expires_at' => Carbon::now()->addHours(24),
-                'created_at' => Carbon::now()
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la planification de suppression du fichier: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Formater le numéro de téléphone pour WhatsApp selon le pays
-     */
-    private function formatPhoneForWhatsApp($phone, $country = 'France')
-    {
-        // Supprimer les caractères non numériques
-        $phone = preg_replace('/[^0-9]/', '', $phone);
-
-        // Formater selon le pays
-        switch ($country) {
-            case 'France':
-                // Format français: +33 6/7 XX XX XX XX
-                if (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
-                    $phone = '33' . substr($phone, 1);
-                }
-                break;
-
-            case 'Cameroun':
-                // Format camerounais: +237 XX XX XX XX
-                if (strlen($phone) == 9) {
-                    $phone = '237' . $phone;
-                } elseif (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
-                    $phone = '237' . substr($phone, 1);
-                }
-                break;
-
-            case 'Belgique':
-                // Format belge: +32 4XX XX XX XX
-                if (strlen($phone) == 10 && substr($phone, 0, 1) == '0') {
-                    $phone = '32' . substr($phone, 1);
-                } elseif (strlen($phone) == 9) {
-                    $phone = '32' . $phone;
-                }
-                break;
-        }
-
-        return $phone;
-    }
-
-    /**
-     * Méthodes privées utilitaires
-     */
-    private function generateDsfEmail(string $name): string
-    {
-        $baseName = Str::slug($name);
-        $uniqueNumber = sprintf('%04d', mt_rand(0, 9999));
-        $email = "dsf.{$baseName}{$uniqueNumber}@dsf-express.com";
-
-        while (User::where('email', $email)->exists()) {
-            $uniqueNumber = sprintf('%04d', mt_rand(0, 9999));
-            $email = "dsf.{$baseName}{$uniqueNumber}@dsf-express.com";
-        }
-
-        return $email;
-    }
-
-    private function generateSecurePassword(): string
-    {
-        return 'DSF' . Str::random(4) . rand(1000, 9999);
-    }
-
-    private function generateTrackingNumber(): string
-    {
-        $date = Carbon::now()->format('ymd');
-        $random = strtoupper(Str::random(4));
-        $number = "DSF-{$date}-{$random}";
-
-        while (Package::where('tracking_number', $number)->exists()) {
-            $random = strtoupper(Str::random(4));
-            $number = "DSF-{$date}-{$random}";
-        }
-
-        return $number;
-    }
-
-    private function createPackage($userId, array $data)
-    {
-        // Création du colis avec les médias
-        $package = Package::create([
-            'user_id' => $userId,
-            'tracking_number' => $this->generateTrackingNumber(),
-            'weight' => $data['weight'],
-            'destination_address' => $data['destination_address'],
-            'description_colis' => $data['description_colis'],
-            'price' => $data['price'],
-            'status' => 'registered',
-            'images' => $data['images'] ?? [],
-            'videos' => $data['videos'] ?? []
-        ]);
-
-        // Création du destinataire associé
-        $package->recipient()->create([
-            'name' => $data['recipient_name'],
-            'phone' => $data['recipient_phone']
-        ]);
-
-        return $package->load('recipient');
-    }
-
     private function getShipmentData($tracking = null)
     {
         $shipment = session('shipment_created');
@@ -981,7 +1311,48 @@ class ShipmentController extends Controller
     }
 
     /**
-     * API endpoints pour la gestion des médias
+     * ====================================================================
+     * MÉTHODES D'ACTIONS EN MASSE
+     * ====================================================================
+     */
+
+    /**
+     * Met à jour le statut de plusieurs expéditions
+     */
+    public function bulkStatusUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'shipments' => 'required|array',
+            'shipments.*' => 'exists:packages,id',
+            'status' => 'required|in:registered,in_transit,delivered'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            Package::whereIn('id', $validated['shipments'])
+                ->update(['status' => $validated['status']]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Statuts mis à jour avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour des statuts'
+            ], 500);
+        }
+    }
+
+    /**
+     * ====================================================================
+     * API ET MÉTHODES AVANCÉES POUR MÉDIAS
+     * ====================================================================
      */
 
     /**
@@ -999,7 +1370,7 @@ class ShipmentController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            Log::error('Erreur récupération médias: ' . $e->getMessage());
+            Log::error('❌ Erreur récupération médias: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la récupération des médias'
@@ -1071,7 +1442,7 @@ class ShipmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur upload média unique: ' . $e->getMessage());
+            Log::error('❌ Erreur upload média unique: ' . $e->getMessage());
 
             // Nettoyer le fichier si l'upload a échoué
             if (isset($path) && $path) {
@@ -1135,7 +1506,7 @@ class ShipmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur réorganisation médias: ' . $e->getMessage());
+            Log::error('❌ Erreur réorganisation médias: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -1143,6 +1514,12 @@ class ShipmentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * ====================================================================
+     * MÉTHODES DE MAINTENANCE ET NETTOYAGE
+     * ====================================================================
+     */
 
     /**
      * Nettoie les anciens fichiers temporaires
@@ -1164,7 +1541,7 @@ class ShipmentController extends Controller
                     ->delete();
             }
 
-            Log::info('Nettoyage des fichiers temporaires terminé. ' . count($expiredFiles) . ' fichiers supprimés.');
+            Log::info('🧹 Nettoyage des fichiers temporaires terminé. ' . count($expiredFiles) . ' fichiers supprimés.');
 
             return response()->json([
                 'success' => true,
@@ -1172,7 +1549,7 @@ class ShipmentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Erreur lors du nettoyage des fichiers temporaires: ' . $e->getMessage());
+            Log::error('❌ Erreur lors du nettoyage des fichiers temporaires: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -1227,11 +1604,77 @@ class ShipmentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Erreur calcul statistiques stockage: ' . $e->getMessage());
+            Log::error('❌ Erreur calcul statistiques stockage: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors du calcul des statistiques'
+            ], 500);
+        }
+    }
+
+    /**
+     * ====================================================================
+     * MÉTHODES DE TEST ET DEBUG POUR LES NOTIFICATIONS
+     * ====================================================================
+     */
+
+    /**
+     * Méthode de test pour les notifications (développement uniquement)
+     */
+    public function testNotifications(Request $request)
+    {
+        if (!app()->environment('local')) {
+            abort(403, 'Cette fonction n\'est disponible qu\'en développement');
+        }
+
+        try {
+            $package = Package::with(['user', 'recipient'])->first();
+
+            if (!$package) {
+                return response()->json(['error' => 'Aucun colis trouvé pour les tests']);
+            }
+
+            $shipmentData = [
+                'user' => [
+                    'name' => $package->user->name,
+                    'email' => $package->user->email,
+                    'phone' => $package->user->phone
+                ],
+                'recipient' => [
+                    'name' => $package->recipient->name,
+                    'phone' => $package->recipient->phone,
+                    'email' => 'test@example.com' // Email de test
+                ],
+                'package' => [
+                    'tracking' => $package->tracking_number,
+                    'price' => $package->price,
+                    'destination' => $package->destination_address,
+                    'weight' => $package->weight,
+                    'description' => $package->description_colis,
+                    'media_count' => $package->getMediaCount()
+                ]
+            ];
+
+            // Test des messages WhatsApp
+            $senderMessage = $this->createWhatsAppMessageForSender($shipmentData, false);
+            $recipientMessage = $this->createWhatsAppMessageForRecipient($shipmentData);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'sender_message' => $senderMessage,
+                    'recipient_message' => $recipientMessage,
+                    'sender_phone' => $this->formatPhoneForWhatsApp($package->user->phone, 'France'),
+                    'recipient_phone' => $this->formatPhoneForWhatsApp($package->recipient->phone, 'France')
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur test notifications: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du test: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -6,98 +6,214 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Diaspora Shopping & Fly') }}</title>
+    <title>DSF - Diaspora Shopping & Fly</title>
     <link rel="icon" href="{{ asset('images/dsf.svg') }}" type="image/x-icon">
 
-    <!-- Preconnect and resource hints -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" as="style">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://fonts.bunny.net">
 
-    <!-- Critical CSS inline -->
+    <!-- Critical CSS inline - Optimized for fast loading -->
     <style>
-        /* Page Loader - Critical for initial rendering */
+        /* Page Loader - Ultra-optimized for performance */
         .page-loader {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: linear-gradient(135deg, #0077be, #005c91);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10000;
             transition: opacity 0.5s ease;
+            will-change: opacity;
         }
 
         .page-loader.fade-out {
             opacity: 0;
         }
 
-        .loader-content {
+        .loader-container {
             position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            will-change: transform;
+        }
+
+        /* Optimized orbit circles */
+        .orbit-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            will-change: transform;
+        }
+
+        .orbit-circle:nth-child(1) {
+            width: 180px;
+            height: 180px;
+            animation: orbit 4s linear infinite;
+        }
+
+        .orbit-circle:nth-child(2) {
+            width: 140px;
+            height: 140px;
+            animation: orbit 3s linear infinite reverse;
+        }
+
+        .orbit-circle:nth-child(3) {
             width: 100px;
             height: 100px;
+            animation: orbit 2s linear infinite;
         }
 
-        .loader-circle {
+        /* Optimized particles */
+        .particle {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            width: 6px;
+            height: 6px;
+            background: #ffd700;
             border-radius: 50%;
+            will-change: transform;
         }
 
-        .loader-line-mask {
-            position: absolute;
-            width: 50%;
-            height: 100%;
-            top: 0;
-            right: 0;
-            overflow: hidden;
-            transform-origin: 0 50%;
-            animation: rotate 1.2s infinite linear;
+        .particle:nth-child(4) {
+            top: 20px;
+            left: 50px;
+            animation: float 3s ease-in-out infinite;
         }
 
-        .loader-line {
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            border: 2px solid #ffd700;
+        .particle:nth-child(5) {
+            top: 60px;
+            right: 30px;
+            animation: float 3s ease-in-out infinite 0.8s;
+        }
+
+        .particle:nth-child(6) {
+            bottom: 40px;
+            left: 40px;
+            animation: float 3s ease-in-out infinite 1.6s;
+        }
+
+        .particle:nth-child(7) {
+            bottom: 20px;
+            right: 60px;
+            animation: float 3s ease-in-out infinite 2.4s;
+        }
+
+        .particle:nth-child(8) {
+            top: 100px;
+            left: 20px;
+            animation: float 3s ease-in-out infinite 0.4s;
+        }
+
+        .particle:nth-child(9) {
+            top: 30px;
+            right: 100px;
+            animation: float 3s ease-in-out infinite 1.2s;
+        }
+
+        /* Optimized logo container */
+        .logo-container {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            left: -100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            will-change: transform;
+            animation: pulse 2s ease-in-out infinite;
         }
 
-        .loader-logo {
+        .dsf-logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            will-change: opacity;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        /* Optimized spinners */
+        .main-spinner {
             position: absolute;
-            top: 50%;
+            width: 120px;
+            height: 120px;
+            border: 3px solid transparent;
+            border-top: 3px solid #ffd700;
+            border-right: 3px solid #ffd700;
+            border-radius: 50%;
+            will-change: transform;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .secondary-spinner {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid transparent;
+            border-bottom: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-radius: 50%;
+            will-change: transform;
+            animation: spin 1s linear infinite reverse;
+        }
+
+        /* Optimized loading text */
+        .loading-text {
+            position: absolute;
+            bottom: -60px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            animation: fadeIn 0.5s ease forwards 0.5s;
+            transform: translateX(-50%);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            will-change: opacity;
+            animation: textFade 2s ease-in-out infinite;
         }
 
-        @keyframes rotate {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+        /* Simplified animations for better performance */
+        @keyframes orbit {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); opacity: 0.7; }
+            50% { transform: translateY(-20px); opacity: 1; }
         }
 
-        /* Progress Bar - Critical for initial UI feedback */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes logoGlow {
+            0% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+            100% { text-shadow: 0 0 30px rgba(255, 215, 0, 1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes textFade {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Progress Bar - Optimized */
         .progress-container {
             position: fixed;
             top: 0;
@@ -113,6 +229,7 @@
             background: linear-gradient(to right, #0077be, #ffd700);
             width: 0%;
             transition: width 0.2s ease-out;
+            will-change: width;
         }
     </style>
 
@@ -135,15 +252,33 @@
 <body class="font-sans antialiased">
     <!-- Page Loader -->
     <div id="pageLoader" class="page-loader">
-        <div class="loader-content">
-            <div class="loader-circle"></div>
-            <div class="loader-line-mask">
-                <div class="loader-line"></div>
+        <div class="loader-container">
+            <!-- Cercles orbitaux -->
+            <div class="orbit-circle"></div>
+            <div class="orbit-circle"></div>
+            <div class="orbit-circle"></div>
+
+            <!-- Particules flottantes -->
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+
+            <!-- Spinners -->
+            <div class="main-spinner"></div>
+            <div class="secondary-spinner"></div>
+
+            <!-- Logo central -->
+            <div class="logo-container">
+                <div class="dsf-logo">DSF</div>
             </div>
-            <svg class="loader-logo" width="50" height="50" viewBox="0 0 50 50">
-                <circle cx="25" cy="25" r="20" fill="none" stroke="#ffffff" stroke-width="2" />
-                <path d="M15,25 L22,32 L35,18" stroke="#ffffff" stroke-width="2" fill="none" />
-            </svg>
+
+            <!-- Texte de chargement optimisé -->
+            <div class="loading-text">
+                Chargement...
+            </div>
         </div>
     </div>
 
@@ -304,43 +439,60 @@
     <!-- Deferred JavaScript loading -->
     <script defer src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Critical JavaScript - Load early for functionality -->
+    <!-- Critical JavaScript - Ultra-optimized -->
     <script>
-        // Page Loader
+        // Optimized Page Loader with minimal DOM manipulation
         document.addEventListener('DOMContentLoaded', function() {
             const loader = document.getElementById('pageLoader');
-            setTimeout(() => {
-                loader.classList.add('fade-out');
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                }, 500);
-            }, 800);
+
+            // Use requestAnimationFrame for smooth animations
+            const hideLoader = () => {
+                requestAnimationFrame(() => {
+                    loader.classList.add('fade-out');
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        loader.remove(); // Free memory
+                    }, 500);
+                });
+            };
+
+            // Faster loader timing for better UX
+            setTimeout(hideLoader, 1200);
         });
 
-        // Progress bar and Back to Top functionality
-        window.onscroll = function() {
-            let winScroll = document.documentElement.scrollTop;
-            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            let scrolled = (winScroll / height) * 100;
-            document.getElementById("progressBar").style.width = scrolled + "%";
+        // Optimized scroll handling with throttling
+        let scrollTimeout;
+        const handleScroll = () => {
+            if (scrollTimeout) return;
 
-            let backToTop = document.getElementById("backToTop");
-            if (winScroll > 300) {
-                backToTop.classList.add("show-btn");
-            } else {
-                backToTop.classList.remove("show-btn");
-            }
+            scrollTimeout = requestAnimationFrame(() => {
+                const winScroll = document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+
+                // Update progress bar
+                document.getElementById("progressBar").style.width = scrolled + "%";
+
+                // Handle back to top button
+                const backToTop = document.getElementById("backToTop");
+                if (winScroll > 300) {
+                    backToTop.classList.add("show-btn");
+                } else {
+                    backToTop.classList.remove("show-btn");
+                }
+
+                scrollTimeout = null;
+            });
         };
 
-        // Smooth scroll to top
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Optimized smooth scroll
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("backToTop").addEventListener("click", function(e) {
                 e.preventDefault();
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
-                });
-            });
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }, { passive: false });
         });
     </script>
 </body>

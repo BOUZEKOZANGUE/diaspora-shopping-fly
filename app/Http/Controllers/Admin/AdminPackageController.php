@@ -182,7 +182,7 @@ class AdminPackageController extends AdminController
                 'message' => 'Erreur lors de la suppression du colis: ' . $e->getMessage()
             ], 500);
         }
-    }   
+    }
 
     public function generateLabel(Package $package)
     {

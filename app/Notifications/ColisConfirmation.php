@@ -29,7 +29,7 @@ class ColisConfirmation extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Confirmation de colis DSF Express #' . $this->shipment['package']['tracking'])
+            ->subject('Confirmation de colis Diaspora Shopping & Fly #' . $this->shipment['package']['tracking'])
             ->greeting('Bonjour ' . $this->shipment['user']['name'] . ',')
             ->line('Votre colis a été enregistré avec succès.')
             ->line('Numéro de suivi: ' . $this->shipment['package']['tracking'])

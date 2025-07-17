@@ -34,7 +34,7 @@
                         </a>
                         <div>
                             <h1 class="text-lg sm:text-xl font-bold text-gray-900">Détails du Colis</h1>
-                            <p class="text-xs sm:text-sm text-gray-500 hidden sm:block">DSF Express Logistics</p>
+                            <p class="text-xs sm:text-sm text-gray-500 hidden sm:block">Diaspora Shopping & Fly Logistics</p>
                         </div>
                     </div>
 

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <!-- Header with improved responsive design -->
+    <!-- Header avec design amélioré -->
     <x-slot name="header">
         <div class="relative bg-gradient-to-r from-[#0077be] to-[#005c91] overflow-hidden">
             {{-- Navigation supérieure - Améliorée pour mobile --}}
@@ -17,7 +17,7 @@
                             <span class="hidden sm:inline">Retour aux expéditions</span>
                         </a>
 
-                        {{-- Indicateur de livraison express - Adapté pour mobile --}}
+                        {{-- Indicateur de livraison express --}}
                         <div class="flex items-center px-3 py-1.5 bg-[#FFD700]/20 text-[#FFD700] rounded-full">
                             <svg class="w-4 h-4 mr-1 sm:mr-2" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            {{-- Contenu principal du header avec meilleure adaptation mobile --}}
+            {{-- Contenu principal du header --}}
             <div class="pt-20 pb-16 sm:pt-24 sm:pb-20 px-4 max-w-7xl mx-auto">
                 <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     {{-- Section titre et description --}}
@@ -48,7 +48,7 @@
                         </div>
                     </div>
 
-                    {{-- Tags informatifs - Redessinés pour mobile --}}
+                    {{-- Tags informatifs --}}
                     <div class="flex space-x-3 sm:space-x-4 mt-2 sm:mt-0">
                         <div
                             class="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-lg rounded-xl flex items-center space-x-2">
@@ -141,11 +141,12 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <!-- Form with multi-step navigation -->
-                        <form action="{{ route('admin.shipments.store') }}" method="POST" class="space-y-5" enctype="multipart/form-data">
+                        <!-- Form avec navigation multi-étapes -->
+                        <form action="{{ route('admin.shipments.store') }}" method="POST" class="space-y-5"
+                            enctype="multipart/form-data" id="shipping-form">
                             @csrf
 
-                            <!-- Step tabs navigation for mobile -->
+                            <!-- Navigation par onglets pour mobile -->
                             <div class="sm:hidden border-b border-gray-200 bg-gray-50">
                                 <div class="flex overflow-x-auto hide-scrollbar" id="mobile-tabs">
                                     <button type="button"
@@ -171,9 +172,9 @@
                                 </div>
                             </div>
 
-                            <!-- Form steps -->
+                            <!-- Étapes du formulaire -->
                             <div class="p-6 space-y-6">
-                                <!-- Step 1: Sender Information -->
+                                <!-- Étape 1: Informations Expéditeur -->
                                 <div class="form-step active" data-step="1">
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
@@ -190,15 +191,22 @@
                                         <div class="p-4 bg-blue-50 rounded-xl text-sm text-blue-800 mb-4">
                                             <div class="flex items-start">
                                                 <i class="fas fa-info-circle mt-0.5 mr-2"></i>
-                                                <p>Le numéro de téléphone doit être au format international pour
-                                                    WhatsApp (ex: +33612345678)</p>
+                                                <div>
+                                                    <p class="font-medium mb-1">Informations importantes :</p>
+                                                    <ul class="list-disc ml-4 space-y-1">
+                                                        <li>Le numéro de téléphone doit être au format international pour WhatsApp (ex: +33612345678)</li>
+                                                        <li>Un email DSF sera automatiquement généré pour le client</li>
+                                                        <li>L'email de notification vous permettra de recevoir une copie des informations</li>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
+                                            <!-- Nom complet -->
+                                            <div class="md:col-span-2">
                                                 <label for="sender_name"
-                                                    class="block text-sm font-medium text-gray-700">Nom complet <span
+                                                    class="block text-sm font-medium text-gray-700">Nom complet de l'expéditeur <span
                                                         class="text-red-500">*</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <div
@@ -206,11 +214,16 @@
                                                         <i class="fas fa-user-circle text-gray-400"></i>
                                                     </div>
                                                     <input type="text" id="sender_name" name="sender_name"
-                                                        required
+                                                        required value="{{ old('sender_name') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
-                                                        placeholder="John Doe">
+                                                        placeholder="Jean Dupont">
                                                 </div>
+                                                @error('sender_name')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
+
+                                            <!-- Téléphone WhatsApp -->
                                             <div>
                                                 <label for="phone"
                                                     class="block text-sm font-medium text-gray-700">Téléphone WhatsApp
@@ -221,36 +234,45 @@
                                                         <i class="fab fa-whatsapp text-green-500"></i>
                                                     </div>
                                                     <input type="tel" id="phone" name="phone" required
+                                                        value="{{ old('phone') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="+33612345678"
                                                         pattern="^\+[0-9]{1,3}[0-9]{6,14}$">
                                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center"
                                                         id="phone-validation">
-                                                        <!-- Dynamically populated by JS -->
+                                                        <!-- Validation dynamique par JS -->
                                                     </div>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code
-                                                    pays)</p>
+                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code pays)</p>
+                                                @error('phone')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
 
-                                            <div class="md:col-span-2">
-                                                <label for="email"
-                                                    class="block text-sm font-medium text-gray-700">Email <span
-                                                        class="text-red-500">*</span></label>
+                                            <!-- Email de notification (optionnel) -->
+                                            <div>
+                                                <label for="notification_email"
+                                                    class="block text-sm font-medium text-gray-700">Email de notification
+                                                    <span class="text-gray-500">(optionnel)</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <div
                                                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                         <i class="fas fa-envelope text-gray-400"></i>
                                                     </div>
-                                                    <input type="email" id="email" name="email" required
+                                                    <input type="email" id="notification_email" name="notification_email"
+                                                        value="{{ old('notification_email') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
-                                                        placeholder="john.doe@example.com">
+                                                        placeholder="jean.dupont@example.com">
                                                 </div>
+                                                <p class="mt-1 text-xs text-gray-500">Recevra une copie des informations du colis</p>
+                                                @error('notification_email')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Navigation buttons -->
+                                    <!-- Boutons de navigation -->
                                     <div class="mt-8 flex justify-end">
                                         <button type="button"
                                             class="next-step px-5 py-2.5 bg-[#0077be] hover:bg-[#005c91] text-white font-medium rounded-xl transition-colors duration-200 flex items-center">
@@ -260,7 +282,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Step 2: Recipient Information -->
+                                <!-- Étape 2: Informations Destinataire -->
                                 <div class="form-step" data-step="2">
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
@@ -277,15 +299,14 @@
                                         <div class="p-4 bg-blue-50 rounded-xl text-sm text-blue-800 mb-4">
                                             <div class="flex items-start">
                                                 <i class="fas fa-info-circle mt-0.5 mr-2"></i>
-                                                <p>Le numéro de téléphone doit être au format international pour
-                                                    WhatsApp (ex: +33612345678)</p>
+                                                <p>Le destinataire recevra une notification WhatsApp et par email (si fourni) avec le numéro de suivi.</p>
                                             </div>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label for="recipient_name"
-                                                    class="block text-sm font-medium text-gray-700">Nom complet <span
+                                                    class="block text-sm font-medium text-gray-700">Nom complet du destinataire <span
                                                         class="text-red-500">*</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <div
@@ -293,10 +314,13 @@
                                                         <i class="fas fa-user-circle text-gray-400"></i>
                                                     </div>
                                                     <input type="text" id="recipient_name" name="recipient_name"
-                                                        required
+                                                        required value="{{ old('recipient_name') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
-                                                        placeholder="Jane Doe">
+                                                        placeholder="Marie Martin">
                                                 </div>
+                                                @error('recipient_name')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
                                             <div>
                                                 <label for="recipient_phone"
@@ -308,22 +332,43 @@
                                                         <i class="fab fa-whatsapp text-green-500"></i>
                                                     </div>
                                                     <input type="tel" id="recipient_phone" name="recipient_phone"
-                                                        required
+                                                        required value="{{ old('recipient_phone') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="+33612345678"
                                                         pattern="^\+[0-9]{1,3}[0-9]{6,14}$">
                                                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center"
                                                         id="recipient-phone-validation">
-                                                        <!-- Dynamically populated by JS -->
+                                                        <!-- Validation dynamique par JS -->
                                                     </div>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code
-                                                    pays)</p>
+                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code pays)</p>
+                                                @error('recipient_phone')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label for="recipient_email"
+                                                    class="block text-sm font-medium text-gray-700">Email destinataire
+                                                    <span class="text-gray-500">(optionnel)</span></label>
+                                                <div class="mt-1 relative rounded-xl shadow-sm">
+                                                    <div
+                                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <i class="fas fa-envelope text-gray-400"></i>
+                                                    </div>
+                                                    <input type="email" name="recipient_email" id="recipient_email"
+                                                        value="{{ old('recipient_email') }}"
+                                                        class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
+                                                        placeholder="marie.martin@example.com">
+                                                </div>
+                                                <p class="mt-1 text-xs text-gray-500">Le destinataire recevra une notification par email</p>
+                                                @error('recipient_email')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Navigation buttons -->
+                                    <!-- Boutons de navigation -->
                                     <div class="mt-8 flex justify-between">
                                         <button type="button"
                                             class="prev-step px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition-colors duration-200 flex items-center">
@@ -338,6 +383,7 @@
                                     </div>
                                 </div>
 
+                                <!-- Étape 3: Détails du Colis -->
                                 <div class="form-step" data-step="3">
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
@@ -351,6 +397,13 @@
                                             </span>
                                         </div>
 
+                                        <div class="p-4 bg-orange-50 rounded-xl text-sm text-orange-800 mb-4">
+                                            <div class="flex items-start">
+                                                <i class="fas fa-exclamation-triangle mt-0.5 mr-2"></i>
+                                                <p><strong>Important :</strong> Au moins une image ou une vidéo du colis est obligatoire pour la création.</p>
+                                            </div>
+                                        </div>
+
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label for="weight"
@@ -362,7 +415,7 @@
                                                         <i class="fas fa-weight-hanging text-gray-400"></i>
                                                     </div>
                                                     <input type="number" step="0.1" min="0.1"
-                                                        id="weight" name="weight" required
+                                                        id="weight" name="weight" required value="{{ old('weight') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="5.0">
                                                     <div
@@ -370,6 +423,9 @@
                                                         <span class="text-gray-500 text-sm">kg</span>
                                                     </div>
                                                 </div>
+                                                @error('weight')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
                                             <div>
                                                 <label for="price"
@@ -381,7 +437,7 @@
                                                         <i class="fas fa-euro-sign text-gray-400"></i>
                                                     </div>
                                                     <input type="number" step="0.01" min="0.01"
-                                                        id="price" name="price" required
+                                                        id="price" name="price" required value="{{ old('price') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="49.99">
                                                     <div
@@ -389,6 +445,9 @@
                                                         <span class="text-gray-500 text-sm">€</span>
                                                     </div>
                                                 </div>
+                                                @error('price')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
 
                                             <div class="md:col-span-2">
@@ -398,7 +457,7 @@
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <textarea id="description_colis" name="description_colis" rows="3" required
                                                         class="w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
-                                                        placeholder="Décrivez le contenu du colis..."></textarea>
+                                                        placeholder="Décrivez le contenu du colis...">{{ old('description_colis') }}</textarea>
                                                 </div>
                                                 <div class="flex justify-between mt-1">
                                                     <p class="text-xs text-gray-500">Soyez précis pour faciliter le
@@ -406,13 +465,16 @@
                                                     <span id="description-character-count"
                                                         class="text-xs text-gray-500">0/500</span>
                                                 </div>
+                                                @error('description_colis')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
 
                                             <!-- Section Upload d'Images -->
                                             <div class="md:col-span-2">
                                                 <label class="block text-sm font-medium text-gray-700 mb-3">
                                                     <i class="fas fa-camera mr-2 text-[#0077be]"></i>
-                                                    Photos du colis
+                                                    Photos du colis <span class="text-red-500">*</span>
                                                 </label>
 
                                                 <!-- Zone de drop pour les images -->
@@ -432,7 +494,7 @@
                                                             multiple accept="image/*" capture="environment"
                                                             class="hidden">
                                                         <p class="text-xs text-gray-500 mt-2">JPEG, PNG, JPG, GIF
-                                                            jusqu'à 2MB chacune</p>
+                                                            jusqu'à 10MB chacune</p>
                                                     </div>
                                                 </div>
 
@@ -440,13 +502,19 @@
                                                 <div id="image-preview"
                                                     class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 hidden">
                                                 </div>
+                                                @error('images')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
+                                                @error('media')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
 
                                             <!-- Section Upload de Vidéos -->
                                             <div class="md:col-span-2">
                                                 <label class="block text-sm font-medium text-gray-700 mb-3">
                                                     <i class="fas fa-video mr-2 text-[#0077be]"></i>
-                                                    Vidéos du colis
+                                                    Vidéos du colis <span class="text-gray-500">(optionnel)</span>
                                                 </label>
 
                                                 <!-- Zone de drop pour les vidéos -->
@@ -472,17 +540,22 @@
                                                 <!-- Prévisualisation des vidéos -->
                                                 <div id="video-preview"
                                                     class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 hidden"></div>
+                                                @error('videos')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
 
                                             <div class="md:col-span-2">
                                                 <div class="flex space-x-4">
                                                     <label class="flex items-center text-sm">
-                                                        <input type="checkbox" name="fragile"
+                                                        <input type="checkbox" name="fragile" value="1"
+                                                            {{ old('fragile') ? 'checked' : '' }}
                                                             class="rounded text-[#0077be] focus:ring-[#0077be] mr-2">
                                                         Contenu fragile
                                                     </label>
                                                     <label class="flex items-center text-sm">
-                                                        <input type="checkbox" name="assurance"
+                                                        <input type="checkbox" name="assurance" value="1"
+                                                            {{ old('assurance') ? 'checked' : '' }}
                                                             class="rounded text-[#0077be] focus:ring-[#0077be] mr-2">
                                                         Assurance premium
                                                     </label>
@@ -491,7 +564,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Navigation buttons -->
+                                    <!-- Boutons de navigation -->
                                     <div class="mt-8 flex justify-between">
                                         <button type="button"
                                             class="prev-step px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition-colors duration-200 flex items-center">
@@ -504,9 +577,9 @@
                                             <i class="fas fa-arrow-right ml-2"></i>
                                         </button>
                                     </div>
-                                </div>>
+                                </div>
 
-                                <!-- Step 4: Destination -->
+                                <!-- Étape 4: Destination -->
                                 <div class="form-step" data-step="4">
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
@@ -533,11 +606,14 @@
                                                     <select id="country" name="country" required
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]">
                                                         <option value="">Sélectionnez un pays</option>
-                                                        <option value="France">France</option>
-                                                        <option value="Cameroun">Cameroun</option>
-                                                        <option value="Belgique">Belgique</option>
+                                                        <option value="France" {{ old('country') == 'France' ? 'selected' : '' }}>France</option>
+                                                        <option value="Cameroun" {{ old('country') == 'Cameroun' ? 'selected' : '' }}>Cameroun</option>
+                                                        <option value="Belgique" {{ old('country') == 'Belgique' ? 'selected' : '' }}>Belgique</option>
                                                     </select>
                                                 </div>
+                                                @error('country')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
                                             <div>
                                                 <label for="city"
@@ -549,9 +625,13 @@
                                                         <i class="fas fa-city text-gray-400"></i>
                                                     </div>
                                                     <input type="text" id="city" name="city" required
+                                                        value="{{ old('city') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="Paris">
                                                 </div>
+                                                @error('city')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
 
                                             <div class="md:col-span-2">
@@ -565,8 +645,11 @@
                                                     </div>
                                                     <textarea id="destination_address" name="destination_address" rows="3" required
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
-                                                        placeholder="25 Rue du Commerce, 75015 Paris, France"></textarea>
+                                                        placeholder="25 Rue du Commerce, 75015 Paris, France">{{ old('destination_address') }}</textarea>
                                                 </div>
+                                                @error('destination_address')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                             </div>
 
                                             <div class="md:col-span-2">
@@ -584,7 +667,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Navigation buttons -->
+                                    <!-- Boutons de navigation -->
                                     <div class="mt-8 flex justify-between">
                                         <button type="button"
                                             class="prev-step px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition-colors duration-200 flex items-center">
@@ -603,9 +686,9 @@
                     </div>
                 </div>
 
-                <!-- Side Panel with Responsive Improvements -->
+                <!-- Panneau latéral avec améliorations responsive -->
                 <div class="lg:col-span-1 space-y-6">
-                    <!-- Quick Summary - Mobile Only -->
+                    <!-- Résumé rapide - Mobile uniquement -->
                     <div class="bg-white rounded-2xl shadow-lg p-5 lg:hidden">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-semibold text-gray-800">Résumé</h3>
@@ -627,7 +710,7 @@
                         </div>
                     </div>
 
-                    <!-- Support Contact - Improved responsive design -->
+                    <!-- Support Contact -->
                     <div
                         class="bg-gradient-to-br from-[#0077be] to-[#005c91] text-white rounded-2xl shadow-lg overflow-hidden">
                         <div class="p-5 space-y-5">
@@ -638,9 +721,8 @@
                                 <h3 class="text-lg font-bold">Support 24/7</h3>
                             </div>
 
-                            <!-- Service Points - Enhanced UI -->
+                            <!-- Points de service -->
                             <div id="service_points" class="space-y-3 max-h-60 overflow-y-auto pr-1 hide-scrollbar">
-                                <!-- Populated by JS -->
                                 <div class="text-center text-sm text-white/80 py-3">
                                     <p>Sélectionnez un pays pour voir les points de service disponibles</p>
                                 </div>
@@ -661,7 +743,7 @@
                         </div>
                     </div>
 
-                    <!-- Forbidden Items Section - Enhanced with accordion -->
+                    <!-- Articles Interdits -->
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                         <div class="p-5">
                             <div class="flex items-center justify-between text-[#0077be] cursor-pointer"
@@ -712,7 +794,7 @@
                         </div>
                     </div>
 
-                    <!-- Pricing Calculator - New component -->
+                    <!-- Calculateur de prix -->
                     <div class="bg-white rounded-2xl shadow-lg p-5 hidden lg:block">
                         <div class="flex items-center space-x-3 text-[#0077be] mb-4">
                             <div class="p-2 bg-blue-100 rounded-full">
@@ -750,10 +832,10 @@
         </div>
     </div>
 
-    <!-- Improved scripts with form validation and multi-step functionality -->
+    <!-- Scripts améliorés -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Multi-step form navigation
+            // Navigation multi-étapes
             const formSteps = document.querySelectorAll('.form-step');
             const nextButtons = document.querySelectorAll('.next-step');
             const prevButtons = document.querySelectorAll('.prev-step');
@@ -761,12 +843,12 @@
             const progressSteps = document.querySelectorAll('.progress-step');
             const tabButtons = document.querySelectorAll('.step-tab');
 
-            // Progress bar update function
+            // Fonction de mise à jour de la barre de progression
             function updateProgress(step) {
                 const percent = ((step - 1) / (formSteps.length - 1)) * 100;
                 progressBar.style.width = `${percent}%`;
 
-                // Update progress steps
+                // Mise à jour des étapes de progression
                 progressSteps.forEach((progStep, idx) => {
                     const stepNum = parseInt(progStep.dataset.step);
                     if (stepNum <= step) {
@@ -790,7 +872,7 @@
                     }
                 });
 
-                // Update mobile tabs
+                // Mise à jour des onglets mobiles
                 tabButtons.forEach(tab => {
                     const tabStep = parseInt(tab.dataset.step);
                     if (tabStep === step) {
@@ -803,7 +885,7 @@
                 });
             }
 
-            // Show a specific step
+            // Afficher une étape spécifique
             function showStep(step) {
                 formSteps.forEach(formStep => {
                     formStep.classList.remove('active');
@@ -816,28 +898,27 @@
 
                 updateProgress(step);
 
-                // Scroll to top of form on mobile
+                // Scroll vers le haut sur mobile
                 if (window.innerWidth < 640) {
-                    const form = document.getElementById('shipping-form');
-                    form.scrollIntoView({
+                    document.getElementById('shipping-form').scrollIntoView({
                         behavior: 'smooth'
                     });
                 }
             }
 
-            // Initialize the form - show first step
+            // Initialisation - afficher la première étape
             formSteps.forEach(step => {
                 step.style.display = 'none';
             });
             showStep(1);
 
-            // Next button click handlers
+            // Gestionnaires des boutons "Suivant"
             nextButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const currentStep = parseInt(this.closest('.form-step').dataset.step);
                     const nextStep = currentStep + 1;
 
-                    // Simple validation before proceeding
+                    // Validation simple avant de continuer
                     const currentFields = this.closest('.form-step').querySelectorAll(
                         'input[required], select[required], textarea[required]');
                     let isValid = true;
@@ -847,28 +928,55 @@
                             isValid = false;
                             field.classList.add('border-red-500');
 
-                            // Add shake animation
+                            // Animation shake
                             field.classList.add('animate-shake');
                             setTimeout(() => {
                                 field.classList.remove('animate-shake');
                             }, 500);
 
-                            // Show validation message
+                            // Message d'erreur
                             let errorMsg = field.parentNode.querySelector('.error-message');
                             if (!errorMsg) {
                                 errorMsg = document.createElement('p');
-                                errorMsg.className =
-                                    'text-red-500 text-xs mt-1 error-message';
+                                errorMsg.className = 'text-red-500 text-xs mt-1 error-message';
                                 errorMsg.innerText = 'Ce champ est requis';
                                 field.parentNode.appendChild(errorMsg);
                             }
                         } else {
                             field.classList.remove('border-red-500');
-                            const errorMsg = field.parentNode.querySelector(
-                                '.error-message');
+                            const errorMsg = field.parentNode.querySelector('.error-message');
                             if (errorMsg) errorMsg.remove();
                         }
                     });
+
+                    // Validation spéciale pour les médias à l'étape 3
+                    if (currentStep === 3) {
+                        const hasImages = document.getElementById('images-input').files.length > 0;
+                        const hasVideos = document.getElementById('videos-input').files.length > 0;
+
+                        if (!hasImages && !hasVideos) {
+                            isValid = false;
+
+                            // Afficher un message d'erreur pour les médias
+                            const imageDropZone = document.getElementById('image-drop-zone');
+                            imageDropZone.classList.add('border-red-500');
+
+                            let mediaError = document.querySelector('.media-error-message');
+                            if (!mediaError) {
+                                mediaError = document.createElement('p');
+                                mediaError.className = 'text-red-500 text-sm mt-2 media-error-message';
+                                mediaError.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Veuillez ajouter au moins une image ou une vidéo du colis.';
+                                imageDropZone.parentNode.appendChild(mediaError);
+                            }
+                        } else {
+                            // Supprimer le message d'erreur des médias s'il existe
+                            const imageDropZone = document.getElementById('image-drop-zone');
+                            imageDropZone.classList.remove('border-red-500');
+
+                            const mediaError = document.querySelector('.media-error-message');
+                            if (mediaError) mediaError.remove();
+                        }
+                    }
 
                     if (isValid && nextStep <= formSteps.length) {
                         showStep(nextStep);
@@ -877,7 +985,7 @@
                 });
             });
 
-            // Previous button click handlers
+            // Gestionnaires des boutons "Précédent"
             prevButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const currentStep = parseInt(this.closest('.form-step').dataset.step);
@@ -889,7 +997,7 @@
                 });
             });
 
-            // Mobile tab navigation
+            // Navigation par onglets mobiles
             tabButtons.forEach(tab => {
                 tab.addEventListener('click', function() {
                     const step = parseInt(this.dataset.step);
@@ -897,7 +1005,7 @@
                 });
             });
 
-            // Phone number format validation for WhatsApp
+            // Validation des numéros de téléphone WhatsApp
             const phoneInputs = [
                 document.getElementById('phone'),
                 document.getElementById('recipient_phone')
@@ -932,7 +1040,7 @@
                     input.classList.remove('border-red-500');
                     input.classList.add('border-green-500');
 
-                    // Remove error message if exists
+                    // Supprimer le message d'erreur s'il existe
                     const errorMsg = input.parentNode.parentNode.querySelector('.error-message');
                     if (errorMsg) errorMsg.remove();
                 } else {
@@ -942,7 +1050,7 @@
                     if (showError) {
                         input.classList.add('border-red-500');
 
-                        // Show error message if not already shown
+                        // Afficher le message d'erreur s'il n'est pas déjà affiché
                         let errorMsg = input.parentNode.parentNode.querySelector('.error-message');
                         if (!errorMsg) {
                             errorMsg = document.createElement('p');
@@ -954,26 +1062,32 @@
                 }
             }
 
-            // Description character counter
+            // Compteur de caractères pour la description
             const descriptionTextarea = document.getElementById('description_colis');
             const characterCount = document.getElementById('description-character-count');
 
             if (descriptionTextarea && characterCount) {
                 descriptionTextarea.addEventListener('input', function() {
                     const count = this.value.length;
-                    characterCount.textContent = `${count}/200`;
+                    characterCount.textContent = `${count}/500`;
 
-                    if (count > 200) {
+                    if (count > 500) {
                         characterCount.classList.add('text-red-500');
                         characterCount.classList.remove('text-gray-500');
+                        this.classList.add('border-red-500');
+                    } else if (count > 450) {
+                        characterCount.classList.add('text-orange-500');
+                        characterCount.classList.remove('text-gray-500', 'text-red-500');
+                        this.classList.remove('border-red-500');
                     } else {
-                        characterCount.classList.remove('text-red-500');
+                        characterCount.classList.remove('text-red-500', 'text-orange-500');
                         characterCount.classList.add('text-gray-500');
+                        this.classList.remove('border-red-500');
                     }
                 });
             }
 
-            // Service points display
+            // Points de service
             const servicePoints = {
                 'France': {
                     'Paris': ['Gare du Nord', 'Gare de Lyon'],
@@ -999,7 +1113,7 @@
                 countrySelect.addEventListener('change', function() {
                     const country = this.value;
 
-                    // Update the sidebar service points
+                    // Mise à jour des points de service dans la sidebar
                     if (servicePoints[country]) {
                         servicePointsDiv.innerHTML = Object.entries(servicePoints[country])
                             .map(([city, points]) => `
@@ -1042,58 +1156,63 @@
                 }
             }
 
-            // Mobile summary updates
+            // Mise à jour du résumé mobile
             function updateSummary() {
                 const senderName = document.getElementById('sender_name').value || '-';
                 const recipientName = document.getElementById('recipient_name').value || '-';
                 const country = document.getElementById('country').value || '';
                 const city = document.getElementById('city').value || '';
 
-                document.getElementById('summary-sender').textContent = senderName;
-                document.getElementById('summary-recipient').textContent = recipientName;
+                const summaryElements = {
+                    'summary-sender': senderName,
+                    'summary-recipient': recipientName,
+                    'summary-destination': country && city ? `${city}, ${country}` : '-'
+                };
 
-                if (country && city) {
-                    document.getElementById('summary-destination').textContent = `${city}, ${country}`;
-                } else {
-                    document.getElementById('summary-destination').textContent = '-';
-                }
+                Object.entries(summaryElements).forEach(([id, value]) => {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = value;
+                });
 
-                // Update pricing calculator
+                // Mise à jour du calculateur de prix
                 updatePricingCalculator();
             }
 
-            // Pricing calculator
+            // Calculateur de prix
             const weightInput = document.getElementById('weight');
             const priceInput = document.getElementById('price');
             const assuranceCheckbox = document.querySelector('input[name="assurance"]');
 
             function updatePricingCalculator() {
-                const weight = parseFloat(weightInput.value) || 0;
-                const basePrice = parseFloat(priceInput.value) || 0;
+                const weight = parseFloat(weightInput?.value) || 0;
+                const basePrice = parseFloat(priceInput?.value) || 0;
                 const hasAssurance = assuranceCheckbox?.checked || false;
 
-                const calcWeight = document.getElementById('calc-weight');
-                const calcBasePrice = document.getElementById('calc-base-price');
-                const calcInsurance = document.getElementById('calc-insurance');
-                const calcTotal = document.getElementById('calc-total');
-
-                if (calcWeight) calcWeight.textContent = `${weight.toFixed(1)} kg`;
-                if (calcBasePrice) calcBasePrice.textContent = `${basePrice.toFixed(2)} €`;
+                const calcElements = {
+                    'calc-weight': `${weight.toFixed(1)} kg`,
+                    'calc-base-price': `${basePrice.toFixed(2)} €`
+                };
 
                 let insuranceAmount = 0;
                 if (hasAssurance && basePrice > 0) {
                     insuranceAmount = Math.max(5, basePrice * 0.05); // 5€ ou 5% de la valeur
                 }
 
-                if (calcInsurance) calcInsurance.textContent = `${insuranceAmount.toFixed(2)} €`;
-                if (calcTotal) calcTotal.textContent = `${(basePrice + insuranceAmount).toFixed(2)} €`;
+                calcElements['calc-insurance'] = `${insuranceAmount.toFixed(2)} €`;
+                calcElements['calc-total'] = `${(basePrice + insuranceAmount).toFixed(2)} €`;
+
+                Object.entries(calcElements).forEach(([id, value]) => {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = value;
+                });
             }
 
+            // Event listeners pour le calculateur
             if (weightInput) weightInput.addEventListener('input', updatePricingCalculator);
             if (priceInput) priceInput.addEventListener('input', updatePricingCalculator);
             if (assuranceCheckbox) assuranceCheckbox.addEventListener('change', updatePricingCalculator);
 
-            // Forbidden items accordion
+            // Accordéon articles interdits
             const forbiddenToggle = document.getElementById('forbidden-toggle');
             const forbiddenContent = document.getElementById('forbidden-content');
             const forbiddenIcon = document.getElementById('forbidden-icon');
@@ -1105,34 +1224,7 @@
                 });
             }
 
-            // Add shake animation style
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                    20%, 40%, 60%, 80% { transform: translateX(5px); }
-                }
-                .animate-shake {
-                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-                }
-                .hide-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .hide-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Initialize form
-            updateSummary();
-        });
-
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Variables pour la gestion des médias
+            // Gestion des médias (images et vidéos)
             const imageInput = document.getElementById('images-input');
             const videoInput = document.getElementById('videos-input');
             const selectImagesBtn = document.getElementById('select-images-btn');
@@ -1145,7 +1237,7 @@
             let selectedImages = [];
             let selectedVideos = [];
 
-            // Gestionnaire pour le bouton de sélection d'images
+            // Gestionnaires pour les boutons de sélection
             if (selectImagesBtn && imageInput) {
                 selectImagesBtn.addEventListener('click', function() {
                     imageInput.click();
@@ -1156,7 +1248,6 @@
                 });
             }
 
-            // Gestionnaire pour le bouton de sélection de vidéos
             if (selectVideosBtn && videoInput) {
                 selectVideosBtn.addEventListener('click', function() {
                     videoInput.click();
@@ -1167,7 +1258,7 @@
                 });
             }
 
-            // Gestionnaire drag & drop pour les images
+            // Drag & Drop pour les images
             if (imageDropZone) {
                 imageDropZone.addEventListener('dragover', function(e) {
                     e.preventDefault();
@@ -1193,7 +1284,7 @@
                 });
             }
 
-            // Gestionnaire drag & drop pour les vidéos
+            // Drag & Drop pour les vidéos
             if (videoDropZone) {
                 videoDropZone.addEventListener('dragover', function(e) {
                     e.preventDefault();
@@ -1219,16 +1310,16 @@
                 });
             }
 
-            // Fonction pour gérer les fichiers images
+            // Gestion des fichiers images
             function handleImageFiles(files) {
                 Array.from(files).forEach(file => {
-                    // Vérifier la taille (2MB max)
-                    if (file.size > 2 * 1024 * 1024) {
-                        alert(`L'image "${file.name}" est trop volumineuse. Taille maximale : 2MB`);
+                    // Vérification de la taille (10MB max)
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert(`L'image "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
                         return;
                     }
 
-                    // Vérifier le type
+                    // Vérification du type
                     if (!file.type.startsWith('image/')) {
                         alert(`Le fichier "${file.name}" n'est pas une image valide.`);
                         return;
@@ -1242,16 +1333,16 @@
                 toggleImagePreview();
             }
 
-            // Fonction pour gérer les fichiers vidéos
+            // Gestion des fichiers vidéos
             function handleVideoFiles(files) {
                 Array.from(files).forEach(file => {
-                    // Vérifier la taille (10MB max)
+                    // Vérification de la taille (10MB max)
                     if (file.size > 10 * 1024 * 1024) {
                         alert(`La vidéo "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
                         return;
                     }
 
-                    // Vérifier le type
+                    // Vérification du type
                     if (!file.type.startsWith('video/')) {
                         alert(`Le fichier "${file.name}" n'est pas une vidéo valide.`);
                         return;
@@ -1265,65 +1356,65 @@
                 toggleVideoPreview();
             }
 
-            // Afficher la prévisualisation d'une image
+            // Affichage de la prévisualisation d'une image
             function displayImagePreview(file, index) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const previewItem = document.createElement('div');
                     previewItem.className = 'relative group';
                     previewItem.innerHTML = `
-                <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
-                    <img src="${e.target.result}" alt="Prévisualisation" class="w-full h-full object-cover">
-                </div>
-                <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeImage(${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    ${(file.size / 1024 / 1024).toFixed(1)}MB
-                </div>
-            `;
+                        <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                            <img src="${e.target.result}" alt="Prévisualisation" class="w-full h-full object-cover">
+                        </div>
+                        <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeImage(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                            ${(file.size / 1024 / 1024).toFixed(1)}MB
+                        </div>
+                    `;
                     imagePreview.appendChild(previewItem);
                 };
                 reader.readAsDataURL(file);
             }
 
-            // Afficher la prévisualisation d'une vidéo
+            // Affichage de la prévisualisation d'une vidéo
             function displayVideoPreview(file, index) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const previewItem = document.createElement('div');
                     previewItem.className = 'relative group';
                     previewItem.innerHTML = `
-                <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
-                    <video src="${e.target.result}" class="w-full h-full object-cover" controls></video>
-                </div>
-                <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeVideo(${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    ${(file.size / 1024 / 1024).toFixed(1)}MB
-                </div>
-            `;
+                        <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                            <video src="${e.target.result}" class="w-full h-full object-cover" controls></video>
+                        </div>
+                        <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeVideo(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                            ${(file.size / 1024 / 1024).toFixed(1)}MB
+                        </div>
+                    `;
                     videoPreview.appendChild(previewItem);
                 };
                 reader.readAsDataURL(file);
             }
 
-            // Mettre à jour l'input des images
+            // Mise à jour de l'input des images
             function updateImageInput() {
                 const dt = new DataTransfer();
                 selectedImages.forEach(file => dt.items.add(file));
                 imageInput.files = dt.files;
             }
 
-            // Mettre à jour l'input des vidéos
+            // Mise à jour de l'input des vidéos
             function updateVideoInput() {
                 const dt = new DataTransfer();
                 selectedVideos.forEach(file => dt.items.add(file));
                 videoInput.files = dt.files;
             }
 
-            // Afficher/masquer la prévisualisation des images
+            // Affichage/masquage de la prévisualisation des images
             function toggleImagePreview() {
                 if (selectedImages.length > 0) {
                     imagePreview.classList.remove('hidden');
@@ -1332,7 +1423,7 @@
                 }
             }
 
-            // Afficher/masquer la prévisualisation des vidéos
+            // Affichage/masquage de la prévisualisation des vidéos
             function toggleVideoPreview() {
                 if (selectedVideos.length > 0) {
                     videoPreview.classList.remove('hidden');
@@ -1366,11 +1457,11 @@
             const form = document.getElementById('shipping-form');
             if (form) {
                 form.addEventListener('submit', function(e) {
-                    // Vérifier que les fichiers ne dépassent pas les limites
+                    // Vérifier les tailles de fichiers
                     for (let file of selectedImages) {
-                        if (file.size > 2 * 1024 * 1024) {
+                        if (file.size > 10 * 1024 * 1024) {
                             e.preventDefault();
-                            alert('Une ou plusieurs images dépassent la taille maximale de 2MB.');
+                            alert('Une ou plusieurs images dépassent la taille maximale de 10MB.');
                             return;
                         }
                     }
@@ -1382,33 +1473,40 @@
                             return;
                         }
                     }
-                });
-            }
 
-            // Mettre à jour le compteur de caractères pour 500 caractères
-            const descriptionTextarea = document.getElementById('description_colis');
-            const characterCount = document.getElementById('description-character-count');
-
-            if (descriptionTextarea && characterCount) {
-                descriptionTextarea.addEventListener('input', function() {
-                    const count = this.value.length;
-                    characterCount.textContent = `${count}/500`;
-
-                    if (count > 500) {
-                        characterCount.classList.add('text-red-500');
-                        characterCount.classList.remove('text-gray-500');
-                        this.classList.add('border-red-500');
-                    } else if (count > 450) {
-                        characterCount.classList.add('text-orange-500');
-                        characterCount.classList.remove('text-gray-500', 'text-red-500');
-                        this.classList.remove('border-red-500');
-                    } else {
-                        characterCount.classList.remove('text-red-500', 'text-orange-500');
-                        characterCount.classList.add('text-gray-500');
-                        this.classList.remove('border-red-500');
+                    // Vérifier qu'au moins un média est fourni
+                    if (selectedImages.length === 0 && selectedVideos.length === 0) {
+                        e.preventDefault();
+                        alert('Veuillez ajouter au moins une image ou une vidéo du colis.');
+                        showStep(3); // Retourner à l'étape des médias
+                        return;
                     }
                 });
             }
+
+            // Animation shake pour les erreurs
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                    20%, 40%, 60%, 80% { transform: translateX(5px); }
+                }
+                .animate-shake {
+                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+                }
+                .hide-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+                .hide-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Initialisation
+            updateSummary();
         });
     </script>
 </x-app-layout>

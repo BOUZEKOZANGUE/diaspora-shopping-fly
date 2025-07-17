@@ -44,7 +44,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>DSF Express</h1>
+        <h1>Diaspora Shopping & Fly</h1>
         <h2>Confirmation d'Expédition - Nouveau Client</h2>
     </div>
 
