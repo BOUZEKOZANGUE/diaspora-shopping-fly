@@ -21,6 +21,16 @@ class PackageManager {
             cancelButton: document.getElementById('cancel-selection'),
             searchInput: document.getElementById('table-search'),
             filterButtons: document.querySelectorAll('.filter-btn'),
+
+            // Nouveaux éléments DSF
+            closeBatchActions: document.getElementById('close-batch-actions'),
+            selectedPackagesCount: document.getElementById('selected-packages-count'),
+            batchProgress: document.getElementById('batch-progress'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            statusSelection: document.getElementById('status-selection'),
+            userSelection: document.getElementById('user-selection'),
+            userSelect: document.getElementById('user-select')
         };
     }
 
@@ -45,6 +55,10 @@ class PackageManager {
             this.elements.cancelButton.addEventListener('click', () => this.handleCancelSelection());
         }
 
+        if (this.elements.closeBatchActions) {
+            this.elements.closeBatchActions.addEventListener('click', () => this.handleCancelSelection());
+        }
+
         if (this.elements.searchInput) {
             this.elements.searchInput.addEventListener('input', this.debounce(() => this.handleSearch(), 300));
         }
@@ -57,9 +71,30 @@ class PackageManager {
     }
 
     handleBatchActionChange() {
-        const { statusSelect } = this.elements;
-        const showStatus = this.elements.batchActionSelect.value === 'status';
-        statusSelect.classList.toggle('hidden', !showStatus);
+        const action = this.elements.batchActionSelect.value;
+
+        // Masquer toutes les sélections conditionnelles
+        if (this.elements.statusSelection) {
+            this.elements.statusSelection.classList.add('hidden');
+        }
+        if (this.elements.userSelection) {
+            this.elements.userSelection.classList.add('hidden');
+        }
+
+        // Support de l'ancien système avec statusSelect direct
+        if (this.elements.statusSelect && !this.elements.statusSelection) {
+            this.elements.statusSelect.classList.toggle('hidden', action !== 'status');
+        }
+
+        // Afficher la sélection appropriée pour le nouveau système
+        if (action === 'status' && this.elements.statusSelection) {
+            this.elements.statusSelection.classList.remove('hidden');
+        } else if (action === 'assign' && this.elements.userSelection) {
+            this.elements.userSelection.classList.remove('hidden');
+            this.loadUsers();
+        }
+
+        this.updateApplyButtonState();
     }
 
     handleSearch() {
@@ -133,9 +168,23 @@ class PackageManager {
                 checkbox.checked = false;
                 const row = checkbox.closest('tr');
                 if (row) {
-                    row.classList.remove('bg-blue-50/50');
+                    row.classList.remove('bg-blue-50/50', 'bg-gradient-to-r', 'from-[#1e6bb8]/5', 'to-[#0077be]/5');
                 }
             });
+        }
+
+        // Reset des sélections
+        if (this.elements.batchActionSelect) {
+            this.elements.batchActionSelect.value = '';
+        }
+        if (this.elements.statusSelection) {
+            this.elements.statusSelection.classList.add('hidden');
+        }
+        if (this.elements.userSelection) {
+            this.elements.userSelection.classList.add('hidden');
+        }
+        if (this.elements.statusSelect) {
+            this.elements.statusSelect.classList.add('hidden');
         }
 
         this.updateBatchActionsVisibility();
@@ -144,12 +193,20 @@ class PackageManager {
     getBatchActionConfirmMessage(selectedIds, action) {
         switch (action) {
             case 'status':
-                const statusText = this.elements.statusSelect.options[this.elements.statusSelect.selectedIndex].text;
-                return `Modifier le statut de ${selectedIds.length} colis en "${statusText}" ?`;
+                const statusElement = this.elements.statusSelect || document.getElementById('status-select');
+                if (statusElement) {
+                    const statusText = statusElement.options[statusElement.selectedIndex].text;
+                    return `Modifier le statut de ${selectedIds.length} colis en "${statusText}" ?`;
+                }
+                return `Modifier le statut de ${selectedIds.length} colis ?`;
             case 'delete':
-                return `Supprimer ${selectedIds.length} colis ?`;
+                return `⚠️ ATTENTION : Vous allez supprimer définitivement ${selectedIds.length} colis. Cette action est irréversible !`;
             case 'export':
-                return `Exporter ${selectedIds.length} colis ?`;
+                return `Exporter ${selectedIds.length} colis sélectionnés ?`;
+            case 'print':
+                return `Imprimer les étiquettes pour ${selectedIds.length} colis ?`;
+            case 'assign':
+                return `Assigner ${selectedIds.length} colis à l'utilisateur sélectionné ?`;
             default:
                 return 'Êtes-vous sûr de vouloir effectuer cette action ?';
         }
@@ -170,49 +227,104 @@ class PackageManager {
             return;
         }
 
+        // Validation spécifique pour l'assignation
+        if (action === 'assign' && this.elements.userSelect && !this.elements.userSelect.value) {
+            this.showNotification('Veuillez sélectionner un utilisateur', 'error');
+            return;
+        }
+
         const confirmMessage = this.getBatchActionConfirmMessage(selectedIds, action);
-        const confirmed = await this.showConfirmDialog(confirmMessage);
+        const confirmed = await this.showConfirmDialog(confirmMessage, action);
 
         if (confirmed) {
+            this.showProgress();
+
             try {
                 const result = await this.executeBatchAction(selectedIds, action);
-                this.showNotification(result.message || 'Action effectuée avec succès', 'success');
 
-                // Handle different actions
-                if (action === 'delete') {
-                    // Remove rows from DOM instead of reloading
-                    selectedIds.forEach(id => {
-                        const row = document.getElementById(`package-row-${id}`);
-                        if (row) {
-                            row.style.transition = 'all 0.5s ease';
-                            row.style.opacity = '0';
-                            row.style.transform = 'translateX(20px)';
-                            setTimeout(() => {
-                                row.remove();
-                                this.updateCountAfterDeletion();
-                            }, 500);
-                        }
-                    });
-                } else if (action === 'status') {
-                    // Update status in the DOM
-                    const newStatus = this.elements.statusSelect.value;
-                    const statusText = this.elements.statusSelect.options[this.elements.statusSelect.selectedIndex].text;
-
-                    selectedIds.forEach(id => {
-                        const row = document.getElementById(`package-row-${id}`);
-                        if (row) {
-                            const statusCell = row.querySelector('td:nth-child(4)');
-                            if (statusCell) {
-                                statusCell.innerHTML = `<span class="status-badge status-${newStatus}">${statusText}</span>`;
-                            }
-                        }
-                    });
+                // Finaliser la barre de progression
+                if (this.elements.progressBar && this.elements.progressText) {
+                    this.elements.progressBar.style.width = '100%';
+                    this.elements.progressText.textContent = '100%';
                 }
 
-                // Reset selection
-                this.handleCancelSelection();
+                setTimeout(() => {
+                    this.hideProgress();
+                    this.showNotification(result.message || 'Action effectuée avec succès', 'success');
+
+                    // Gérer les différentes actions
+                    this.handleActionResult(action, selectedIds, result);
+
+                    // Reset de la sélection
+                    this.handleCancelSelection();
+                }, 1000);
+
             } catch (error) {
+                this.hideProgress();
                 this.showNotification(error.message || 'Erreur lors de l\'exécution de l\'action', 'error');
+            }
+        }
+    }
+
+    handleActionResult(action, selectedIds, result) {
+        if (action === 'delete') {
+            // Supprimer les lignes du DOM
+            selectedIds.forEach(id => {
+                const row = document.getElementById(`package-row-${id}`);
+                if (row) {
+                    row.style.transition = 'all 0.5s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        row.remove();
+                        this.updateCountAfterDeletion();
+                    }, 500);
+                }
+            });
+        } else if (action === 'status') {
+            // Mettre à jour le statut dans le DOM
+            const statusElement = this.elements.statusSelect || document.getElementById('status-select');
+            if (statusElement) {
+                const newStatus = statusElement.value;
+                const statusText = statusElement.options[statusElement.selectedIndex].text;
+
+                selectedIds.forEach(id => {
+                    const row = document.getElementById(`package-row-${id}`);
+                    if (row) {
+                        const statusCell = row.querySelector('td:nth-child(4)');
+                        if (statusCell) {
+                            // Créer le nouveau badge de statut avec les styles DSF
+                            let statusClass = 'bg-gray-100 text-gray-800 border-gray-200';
+                            let icon = '⏳';
+
+                            if (newStatus === 'delivered') {
+                                statusClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                                icon = '✅';
+                            } else if (newStatus === 'in_transit') {
+                                statusClass = 'bg-[#DAA520]/10 text-[#DAA520] border-[#DAA520]/20';
+                                icon = '🚚';
+                            }
+
+                            statusCell.innerHTML = `
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${statusClass} border shadow-sm">
+                                    ${icon} ${statusText}
+                                </span>
+                            `;
+                        }
+                    }
+                });
+            }
+        } else if (action === 'export') {
+            // Gérer le téléchargement si un fichier est retourné
+            if (result.download_url) {
+                window.open(result.download_url, '_blank');
+            }
+        } else if (action === 'print') {
+            // Gérer l'impression multiple
+            if (result.print_urls) {
+                result.print_urls.forEach(url => {
+                    window.open(url, '_blank');
+                });
             }
         }
     }
@@ -226,8 +338,15 @@ class PackageManager {
         const formData = new FormData();
         selectedIds.forEach(id => formData.append('ids[]', id));
         formData.append('action', action);
+
+        // Ajouter des données spécifiques selon l'action
         if (action === 'status') {
-            formData.append('status', this.elements.statusSelect.value);
+            const statusElement = this.elements.statusSelect || document.getElementById('status-select');
+            if (statusElement) {
+                formData.append('status', statusElement.value);
+            }
+        } else if (action === 'assign' && this.elements.userSelect) {
+            formData.append('user_id', this.elements.userSelect.value);
         }
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -257,14 +376,14 @@ class PackageManager {
         return data;
     }
 
-    async showConfirmDialog(message) {
+    async showConfirmDialog(message, action = '') {
         const result = await Swal.fire({
             title: 'Confirmation',
             text: message,
-            icon: 'warning',
+            icon: action === 'delete' ? 'warning' : 'question',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
+            confirmButtonColor: action === 'delete' ? '#dc2626' : '#1e6bb8',
+            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Confirmer',
             cancelButtonText: 'Annuler'
         });
@@ -279,7 +398,13 @@ class PackageManager {
         packageCheckboxes.forEach(checkbox => {
             checkbox.checked = isChecked;
             const row = checkbox.closest('tr');
-            if (row) row.classList.toggle('bg-blue-50/50', isChecked);
+            if (row) {
+                if (isChecked) {
+                    row.classList.add('bg-gradient-to-r', 'from-[#1e6bb8]/5', 'to-[#0077be]/5');
+                } else {
+                    row.classList.remove('bg-gradient-to-r', 'from-[#1e6bb8]/5', 'to-[#0077be]/5', 'bg-blue-50/50');
+                }
+            }
         });
 
         this.updateBatchActionsVisibility();
@@ -287,7 +412,13 @@ class PackageManager {
 
     handleCheckboxChange(checkbox) {
         const row = checkbox.closest('tr');
-        if (row) row.classList.toggle('bg-blue-50/50', checkbox.checked);
+        if (row) {
+            if (checkbox.checked) {
+                row.classList.add('bg-gradient-to-r', 'from-[#1e6bb8]/5', 'to-[#0077be]/5');
+            } else {
+                row.classList.remove('bg-gradient-to-r', 'from-[#1e6bb8]/5', 'to-[#0077be]/5', 'bg-blue-50/50');
+            }
+        }
 
         this.updateBatchActionsVisibility();
         this.updateSelectAllState();
@@ -304,29 +435,147 @@ class PackageManager {
     }
 
     updateBatchActionsVisibility() {
-        const { batchActions, selectedCount, totalCount } = this.elements;
         const checkedCount = document.querySelectorAll('.package-checkbox:checked').length;
         const hasSelection = checkedCount > 0;
 
-        if (batchActions) {
-            batchActions.classList.toggle('hidden', !hasSelection);
+        // Mettre à jour l'affichage de la barre d'actions
+        if (this.elements.batchActions) {
+            if (hasSelection) {
+                this.showBatchActions();
+            } else {
+                this.hideBatchActions();
+            }
         }
 
-        if (selectedCount) {
-            selectedCount.classList.toggle('hidden', !hasSelection);
-            selectedCount.textContent = `${checkedCount} sélectionné(s)`;
+        // Mettre à jour les compteurs
+        if (this.elements.selectedCount) {
+            this.elements.selectedCount.classList.toggle('hidden', !hasSelection);
+            this.elements.selectedCount.textContent = `${checkedCount} sélectionné(s)`;
         }
 
-        if (totalCount) {
-            totalCount.classList.toggle('hidden', hasSelection);
+        if (this.elements.selectedPackagesCount) {
+            this.elements.selectedPackagesCount.textContent = checkedCount;
         }
 
-        if (!hasSelection && this.elements.batchActionSelect) {
-            this.elements.batchActionSelect.value = '';
+        if (this.elements.totalCount) {
+            this.elements.totalCount.classList.toggle('hidden', hasSelection);
+        }
+
+        // Reset des sélections si aucun élément sélectionné
+        if (!hasSelection) {
+            if (this.elements.batchActionSelect) {
+                this.elements.batchActionSelect.value = '';
+            }
+            if (this.elements.statusSelection) {
+                this.elements.statusSelection.classList.add('hidden');
+            }
+            if (this.elements.userSelection) {
+                this.elements.userSelection.classList.add('hidden');
+            }
             if (this.elements.statusSelect) {
                 this.elements.statusSelect.classList.add('hidden');
             }
         }
+
+        this.updateApplyButtonState();
+    }
+
+    // Nouvelles méthodes pour la barre d'actions DSF
+    showBatchActions() {
+        if (!this.elements.batchActions) return;
+
+        this.elements.batchActions.classList.remove('hidden');
+        setTimeout(() => {
+            this.elements.batchActions.classList.remove('translate-y-4', 'opacity-0');
+            this.elements.batchActions.classList.add('translate-y-0', 'opacity-100');
+        }, 10);
+    }
+
+    hideBatchActions() {
+        if (!this.elements.batchActions) return;
+
+        this.elements.batchActions.classList.add('translate-y-4', 'opacity-0');
+        this.elements.batchActions.classList.remove('translate-y-0', 'opacity-100');
+        setTimeout(() => {
+            this.elements.batchActions.classList.add('hidden');
+        }, 500);
+    }
+
+    updateApplyButtonState() {
+        if (!this.elements.applyButton) return;
+
+        const hasAction = this.elements.batchActionSelect ? this.elements.batchActionSelect.value !== '' : false;
+        const hasSelection = document.querySelectorAll('.package-checkbox:checked').length > 0;
+
+        this.elements.applyButton.disabled = !(hasAction && hasSelection);
+    }
+
+    async loadUsers() {
+        if (!this.elements.userSelect) return;
+
+        try {
+            const response = await fetch('/admin/users/list', {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Erreur lors du chargement des utilisateurs');
+
+            const users = await response.json();
+
+            this.elements.userSelect.innerHTML = '<option value="">Choisir un utilisateur...</option>';
+
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = `${user.name} (${user.email})`;
+                this.elements.userSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Erreur lors du chargement des utilisateurs:', error);
+            this.showNotification('Erreur lors du chargement des utilisateurs', 'error');
+        }
+    }
+
+    showProgress() {
+        if (!this.elements.batchProgress) return;
+
+        this.elements.batchProgress.classList.remove('hidden');
+        this.animateProgress();
+    }
+
+    hideProgress() {
+        if (!this.elements.batchProgress) return;
+
+        this.elements.batchProgress.classList.add('hidden');
+        if (this.elements.progressBar) {
+            this.elements.progressBar.style.width = '0%';
+        }
+        if (this.elements.progressText) {
+            this.elements.progressText.textContent = '0%';
+        }
+
+        // Clear interval si existe
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+        }
+    }
+
+    animateProgress() {
+        if (!this.elements.progressBar || !this.elements.progressText) return;
+
+        let progress = 0;
+        this.progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 90) {
+                progress = 90;
+                clearInterval(this.progressInterval);
+            }
+            this.elements.progressBar.style.width = progress + '%';
+            this.elements.progressText.textContent = Math.round(progress) + '%';
+        }, 200);
     }
 
     showNotification(message, type = 'info') {
@@ -349,7 +598,9 @@ class PackageManager {
         setTimeout(() => {
             toast.style.transform = 'translateY(100%)';
             setTimeout(() => {
-                document.body.removeChild(toast);
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
             }, 300);
         }, 3000);
     }
@@ -408,9 +659,6 @@ window.confirmDelete = async function(event, packageId) {
                 })
             });
 
-            // Log pour debug
-            console.log('Response status:', response.status);
-
             let data;
             try {
                 data = await response.json();
@@ -448,9 +696,6 @@ window.confirmDelete = async function(event, packageId) {
                     timer: 1500,
                     showConfirmButton: false
                 });
-
-                // Ne pas recharger la page
-                // Supprimé: setTimeout(() => window.location.reload(), 1500);
             } else {
                 throw new Error(data.message || 'Erreur lors de la suppression');
             }
