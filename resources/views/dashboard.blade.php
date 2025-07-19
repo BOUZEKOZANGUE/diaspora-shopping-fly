@@ -268,7 +268,7 @@
                                         <i class="far fa-star"></i>
                                     </button>
 
-                                    <div class="relative group/menu">
+                                    {{-- <div class="relative group/menu">
                                         <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-300">
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
@@ -293,7 +293,7 @@
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
                                 </div>
                             </div>
 
