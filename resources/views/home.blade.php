@@ -313,14 +313,14 @@
                     </div>
 
                     <div class="grid md:grid-cols-2 gap-8">
-                        <!-- Douala - Deido -->
+                        <!-- Douala  -->
                         <div
                             class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
                             <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-4">
                                 <div class="flex items-center gap-3">
                                     <img src="https://flagcdn.com/cm.svg" alt="Cameroun"
                                         class="w-10 h-6 rounded shadow-sm">
-                                    <h4 class="text-xl font-bold text-white">Douala - Deido</h4>
+                                    <h4 class="text-xl font-bold text-white">Douala - Logpom </h4>
                                     <span class="text-sm bg-white/20 text-white px-3 py-1 rounded-full ml-auto">
                                         Point principal
                                     </span>
@@ -337,8 +337,7 @@
                                         </svg>
                                         <div>
                                             <p class="font-medium text-gray-900">Adresse</p>
-                                            <p class="text-gray-600 mt-2">Deido, face Grand Bazar<br>Proche de l'école
-                                                primaire bilingue Cristal</p>
+                                            <p class="text-gray-600 mt-2">Logpom, Montana city <br>Proche de Reine Mère</p>
                                         </div>
                                     </div>
 
@@ -386,7 +385,7 @@
                                             <p class="font-medium text-gray-900">Informations</p>
                                             <p class="text-gray-600 mt-2">Récupération des colis à l'aéroport de
                                                 Yaoundé.</p>
-                                            <div class="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                            {{-- <div class="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                                                 <p class="text-yellow-800 flex items-start gap-2">
                                                     <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none"
                                                         stroke="currentColor" viewBox="0 0 24 24">
@@ -394,10 +393,10 @@
                                                             stroke-width="2"
                                                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                                     </svg>
-                                                    <span>Service de livraison à domicile disponible avec supplément à
-                                                        la charge du client.</span>
+                                                    {{-- <span>Service de livraison à domicile disponible avec supplément à
+                                                        la charge du client.</span> 
                                                 </p>
-                                            </div>
+                                            </div> --}}
                                         </div>
                                     </div>
 

@@ -143,7 +143,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
         // Actions en lot
         Route::post('/bulk-status-update', 'bulkStatusUpdate')->name('bulk-status-update');
-
+        Route::post('/admin/shipments/send-email-notification','sendEmailNotification')
+            ->name('send-email-notification');
         // Suppression
         Route::delete('/{shipment}', 'destroy')->name('destroy');
     });

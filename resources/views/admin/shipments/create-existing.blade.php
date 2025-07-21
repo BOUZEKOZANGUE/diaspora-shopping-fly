@@ -24,7 +24,7 @@
                                 <path
                                     d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
                             </svg>
-                            <span>Express 2-5j</span>
+
                         </div>
                     </div>
                 </div>
@@ -154,7 +154,6 @@
                     </button>
                 </div>
             </div>
-
             <div class="flex flex-col md:flex-row gap-6">
                 <!-- Sidebar - Liste des Utilisateurs avec amélioration UX -->
                 <div id="users-tab" class="w-full md:w-96 md:flex-shrink-0">
@@ -235,11 +234,11 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Formulaire Principal optimisé -->
                 <div id="form-tab" class="w-full flex-1 hidden md:block">
                     <!-- CORRECTION IMPORTANTE : Ajout de enctype="multipart/form-data" pour l'upload de fichiers -->
-                    <form action="{{ route('admin.shipments.store-existing') }}" method="POST" class="space-y-5" enctype="multipart/form-data">
+                    <form action="{{ route('admin.shipments.store-existing') }}" method="POST" class="space-y-5"
+                        enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="user_id" id="user_id" required>
 
@@ -306,7 +305,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- Détails du Colis avec conception améliorée -->
                         <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                             <div class="p-4 sm:p-6">
@@ -336,25 +334,44 @@
                                         </div>
                                     </div>
                                     <div class="space-y-4">
+                                        <!-- Calculateur de Poids de Transport -->
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <input type="number" name="weight" id="weight" step="0.1"
-                                                    placeholder=" " required min="0.1" value="{{ old('weight') }}"
+                                                    placeholder=" " required min="0.1"
+                                                    value="{{ old('weight') }}"
                                                     class="w-full px-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 pr-12 text-sm">
                                                 <div
                                                     class="absolute right-3 top-0 bottom-0 flex items-center pointer-events-none">
                                                     <span class="text-gray-500 text-xs sm:text-sm">kg</span>
                                                 </div>
-                                                <label for="weight" class="text-xs sm:text-sm">Poids</label>
+                                                <label for="weight" class="text-xs sm:text-sm">Poids réel</label>
                                             </div>
                                             @error('weight')
                                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                             @enderror
+                                            <!-- Affichage du poids facturé -->
+                                            <div id="billed-weight-display"
+                                                class="mt-2 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 hidden">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-sm text-gray-700 flex items-center">
+                                                        <i class="fas fa-calculator text-[#0077be] mr-2"></i>
+                                                        Poids facturé :
+                                                    </span>
+                                                    <span id="billed-weight-value"
+                                                        class="font-bold text-lg text-[#0077be]">-- kg</span>
+                                                </div>
+                                                <div class="mt-1 text-xs text-gray-500">
+                                                    Selon barème transport (tranches de 1kg + 0,2kg)
+                                                </div>
+                                            </div>
                                         </div>
+                                        <!-- Champ Prix -->
                                         <div class="floating-label">
                                             <div class="relative">
                                                 <input type="number" name="price" id="price" step="0.01"
-                                                    placeholder=" " required min="0.01" value="{{ old('price') }}"
+                                                    placeholder=" " required min="0.01"
+                                                    value="{{ old('price') }}"
                                                     class="w-full px-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 pr-12 text-sm">
                                                 <div
                                                     class="absolute right-3 top-0 bottom-0 flex items-center pointer-events-none">
@@ -368,96 +385,108 @@
                                         </div>
                                     </div>
 
-                                    <!-- Section Upload d'Images CORRIGÉE -->
+                                    <!-- Section Médias Unifiée AVEC CAMÉRA EN TEMPS RÉEL -->
                                     <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-3">
                                             <i class="fas fa-camera mr-2 text-[#0077be]"></i>
-                                            Photos du colis
+                                            Photos et Vidéos du colis
                                             <span class="text-red-500">*</span>
-                                            <span class="text-xs text-gray-500 font-normal">(Au moins une image ou vidéo requise)</span>
+                                            <span class="text-xs text-gray-500 font-normal">(Au moins un média
+                                                requis)</span>
                                         </label>
 
-                                        <!-- Zone de drop pour les images -->
+                                        <!-- Boutons d'action pour médias -->
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                                            <button type="button" id="take-photo-btn"
+                                                class="inline-flex items-center justify-center px-3 py-2 bg-[#0077be] text-white text-xs sm:text-sm rounded-lg hover:bg-[#005c91] transition-colors">
+                                                <i class="fas fa-camera mr-1 sm:mr-2"></i>
+                                                <span class="hidden sm:inline">Prendre </span>Photo
+                                            </button>
+                                            <button type="button" id="record-video-btn"
+                                                class="inline-flex items-center justify-center px-3 py-2 bg-red-500 text-white text-xs sm:text-sm rounded-lg hover:bg-red-600 transition-colors">
+                                                <i class="fas fa-video mr-1 sm:mr-2"></i>
+                                                <span class="hidden sm:inline">Filmer </span>Vidéo
+                                            </button>
+                                            <button type="button" id="select-images-btn"
+                                                class="inline-flex items-center justify-center px-3 py-2 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition-colors">
+                                                <i class="fas fa-folder-open mr-1 sm:mr-2"></i>
+                                                Images
+                                            </button>
+                                            <button type="button" id="select-videos-btn"
+                                                class="inline-flex items-center justify-center px-3 py-2 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition-colors">
+                                                <i class="fas fa-file-video mr-1 sm:mr-2"></i>
+                                                Vidéos
+                                            </button>
+                                        </div>
+
+                                        <!-- Zone de drop unifiée -->
                                         <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                                            id="image-drop-zone">
+                                            id="media-drop-zone">
                                             <div class="text-center">
-                                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
-                                                <p class="text-sm text-gray-600 mb-2">Glissez-déposez vos images ici ou
-                                                </p>
-                                                <button type="button" id="select-images-btn"
-                                                    class="inline-flex items-center px-3 py-2 bg-[#0077be] text-white text-sm rounded-lg hover:bg-[#005c91] transition-colors">
-                                                    <i class="fas fa-camera mr-2"></i>
-                                                    Prendre/Choisir des photos
-                                                </button>
-                                                <!-- CORRECTION : Changement de accept pour être plus spécifique -->
-                                                <input type="file" id="images-input" name="images[]" multiple
-                                                    accept="image/jpeg,image/png,image/jpg,image/gif" class="hidden">
-                                                <p class="text-xs text-gray-500 mt-2">JPEG, PNG, JPG, GIF jusqu'à 10MB
-                                                    chacune (max 10 images)</p>
+                                                <div class="flex justify-center space-x-4 mb-3">
+                                                    <i class="fas fa-camera text-2xl text-gray-400"></i>
+                                                    <i class="fas fa-video text-2xl text-gray-400"></i>
+                                                    <i class="fas fa-cloud-upload-alt text-2xl text-gray-400"></i>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mb-2">Glissez-déposez vos médias ici ou
+                                                    utilisez les boutons ci-dessus</p>
+                                                <p class="text-xs text-gray-500">Images: JPEG, PNG, JPG, GIF • Vidéos:
+                                                    MP4, AVI, MOV, WMV</p>
+                                                <p class="text-xs text-gray-500">Taille max: 10MB par fichier • Max: 10
+                                                    images + 5 vidéos</p>
                                             </div>
                                         </div>
 
-                                        <!-- Prévisualisation des images -->
-                                        <div id="image-preview"
-                                            class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 hidden">
+                                        <!-- Inputs file cachés -->
+                                        <input type="file" id="images-input" name="images[]" multiple
+                                            accept="image/jpeg,image/png,image/jpg,image/gif" class="hidden">
+                                        <input type="file" id="videos-input" name="videos[]" multiple
+                                            accept="video/mp4,video/mov,video/avi,video/wmv" class="hidden">
+
+                                        <!-- Prévisualisation unifiée des médias -->
+                                        <div id="media-preview" class="mt-4 space-y-4">
+                                            <!-- Section Images -->
+                                            <div id="images-section" class="hidden">
+                                                <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                                    <i class="fas fa-images text-[#0077be] mr-2"></i>
+                                                    Images (<span id="images-count">0</span>/10)
+                                                </h4>
+                                                <div id="image-preview"
+                                                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                                </div>
+                                            </div>
+
+                                            <!-- Section Vidéos -->
+                                            <div id="videos-section" class="hidden">
+                                                <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                                    <i class="fas fa-video text-red-500 mr-2"></i>
+                                                    Vidéos (<span id="videos-count">0</span>/5)
+                                                </h4>
+                                                <div id="video-preview" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <!-- Message d'erreur pour les images -->
+                                        <!-- Messages d'erreur -->
                                         @error('images')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                         @error('images.*')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
-                                        @error('media')
-                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Section Upload de Vidéos CORRIGÉE -->
-                                    <div class="lg:col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-3">
-                                            <i class="fas fa-video mr-2 text-[#0077be]"></i>
-                                            Vidéos du colis
-                                            <span class="text-xs text-gray-500 font-normal">(Optionnel si images ajoutées)</span>
-                                        </label>
-
-                                        <!-- Zone de drop pour les vidéos -->
-                                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                                            id="video-drop-zone">
-                                            <div class="text-center">
-                                                <i class="fas fa-video text-3xl text-gray-400 mb-3"></i>
-                                                <p class="text-sm text-gray-600 mb-2">Glissez-déposez vos vidéos ici ou
-                                                </p>
-                                                <button type="button" id="select-videos-btn"
-                                                    class="inline-flex items-center px-3 py-2 bg-[#0077be] text-white text-sm rounded-lg hover:bg-[#005c91] transition-colors">
-                                                    <i class="fas fa-video mr-2"></i>
-                                                    Filmer/Choisir des vidéos
-                                                </button>
-                                                <!-- CORRECTION : Changement de accept pour être plus spécifique -->
-                                                <input type="file" id="videos-input" name="videos[]" multiple
-                                                    accept="video/mp4,video/mov,video/avi,video/wmv" class="hidden">
-                                                <p class="text-xs text-gray-500 mt-2">MP4, AVI, MOV, WMV jusqu'à 10MB
-                                                    chacune (max 5 vidéos)</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Prévisualisation des vidéos -->
-                                        <div id="video-preview"
-                                            class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 hidden"></div>
-
-                                        <!-- Message d'erreur pour les vidéos -->
                                         @error('videos')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                         @error('videos.*')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
+                                        @error('media')
+                                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                         <!-- Destinataire avec meilleure organisation -->
                         <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                             <div class="p-4 sm:p-6">
@@ -515,9 +544,17 @@
                                                 <select name="country" id="country" required
                                                     class="w-full pl-10 pr-4 py-2 rounded-xl border-2 border-[#0077be]/20 focus:border-[#0077be] focus:ring focus:ring-[#0077be]/20 text-sm">
                                                     <option value="">Sélectionnez un pays</option>
-                                                    <option value="France" {{ old('country') == 'France' ? 'selected' : '' }}>France</option>
-                                                    <option value="Cameroun" {{ old('country') == 'Cameroun' ? 'selected' : '' }}>Cameroun</option>
-                                                    <option value="Belgique" {{ old('country') == 'Belgique' ? 'selected' : '' }}>Belgique</option>
+                                                    <option value="France"
+                                                        {{ old('country') == 'France' ? 'selected' : '' }}>France
+                                                    </option>
+                                                    <option value="Cameroun"
+                                                        {{ old('country') == 'Cameroun' ? 'selected' : '' }}>
+                                                        Cameroun
+                                                    </option>
+                                                    <option value="Belgique"
+                                                        {{ old('country') == 'Belgique' ? 'selected' : '' }}>
+                                                        Belgique
+                                                    </option>
                                                 </select>
                                                 <div
                                                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -553,7 +590,8 @@
                                                     <i class="fas fa-map-marker-alt text-gray-400"></i>
                                                 </div>
                                                 <label for="destination_address"
-                                                    class="text-xs sm:text-sm pl-6">Adresse complète</label>
+                                                    class="text-xs sm:text-sm pl-6">Adresse
+                                                    complète</label>
                                             </div>
                                             <p class="mt-1 text-xs text-gray-500 pl-1">Incluez le numéro, la rue, le
                                                 code postal et tout complément d'adresse</p>
@@ -592,7 +630,8 @@
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z">
+                                        </path>
                                     </svg>
                                     <i id="submit-icon"
                                         class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
@@ -604,7 +643,114 @@
             </div>
         </div>
     </main>
+    <!-- Modal Caméra Photo -->
+    <div id="camera-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl overflow-hidden max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div class="bg-[#0077be] text-white p-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-camera mr-2"></i>
+                    Prendre une photo
+                </h3>
+                <button type="button" id="close-camera-btn" class="text-white hover:text-gray-200 p-1">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
 
+            <div class="flex-1 relative bg-black flex items-center justify-center min-h-[300px]">
+                <video id="camera-video" autoplay playsinline class="max-w-full max-h-full rounded"></video>
+                <canvas id="camera-canvas" class="hidden"></canvas>
+
+                <!-- Overlay de guidage -->
+                <div class="absolute inset-4 border-2 border-white/30 rounded-lg pointer-events-none">
+                    <div class="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-white"></div>
+                    <div class="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-white"></div>
+                    <div class="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 border-white"></div>
+                    <div class="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-white"></div>
+                </div>
+
+                <!-- Messages d'état -->
+                <div id="camera-status" class="absolute top-4 left-4 right-4 text-center">
+                    <div class="bg-black/50 text-white px-3 py-1 rounded-full text-sm hidden" id="camera-loading">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Initialisation de la caméra...
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 flex justify-center space-x-4">
+                <button type="button" id="capture-photo-btn"
+                    class="inline-flex items-center px-6 py-3 bg-[#0077be] text-white rounded-lg hover:bg-[#005c91] transition-colors shadow-lg">
+                    <i class="fas fa-camera mr-2"></i>
+                    Capturer
+                </button>
+                <button type="button" id="switch-camera-btn"
+                    class="inline-flex items-center px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    <span class="hidden sm:inline">Changer </span>Caméra
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Caméra Vidéo -->
+    <div id="video-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl overflow-hidden max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div class="bg-[#0077be] text-white p-4 flex items-center justify-between">
+                <h3 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-video mr-2"></i>
+                    Enregistrer une vidéo
+                </h3>
+                <button type="button" id="close-video-btn" class="text-white hover:text-gray-200 p-1">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 relative bg-black flex items-center justify-center min-h-[300px]">
+                <video id="video-camera" autoplay playsinline muted class="max-w-full max-h-full rounded"></video>
+
+                <!-- Indicateur d'enregistrement -->
+                <div id="recording-indicator"
+                    class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm hidden">
+                    <i class="fas fa-circle mr-1 animate-pulse"></i>
+                    REC <span id="recording-time">00:00</span>
+                </div>
+
+                <!-- Overlay de guidage pour vidéo -->
+                <div class="absolute inset-4 border-2 border-red-500/30 rounded-lg pointer-events-none">
+                    <div class="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-red-500"></div>
+                    <div class="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-red-500"></div>
+                    <div class="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 border-red-500"></div>
+                    <div class="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-red-500"></div>
+                </div>
+
+                <!-- Messages d'état vidéo -->
+                <div id="video-status" class="absolute top-4 left-4 right-4 text-center">
+                    <div class="bg-black/50 text-white px-3 py-1 rounded-full text-sm hidden" id="video-loading">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Initialisation de la caméra...
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 flex justify-center space-x-4">
+                <button type="button" id="start-recording-btn"
+                    class="inline-flex items-center px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg">
+                    <i class="fas fa-play mr-2"></i>
+                    Démarrer
+                </button>
+                <button type="button" id="stop-recording-btn"
+                    class="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-lg hidden">
+                    <i class="fas fa-stop mr-2"></i>
+                    Arrêter
+                </button>
+                <button type="button" id="switch-video-camera-btn"
+                    class="inline-flex items-center px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    <span class="hidden sm:inline">Changer </span>Caméra
+                </button>
+            </div>
+        </div>
+    </div>
     <style>
         /* Amélioration du système de labels flottants */
         .floating-label {
@@ -652,6 +798,15 @@
         .floating-label select:focus {
             border-color: #0077be !important;
             box-shadow: 0 0 0 2px rgba(0, 119, 190, 0.2);
+        }
+
+        /* Styles pour les modaux de caméra */
+        #camera-modal video,
+        #video-modal video {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            object-fit: cover;
         }
 
         /* Animation d'apparition améliorée */
@@ -726,6 +881,23 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
+        /* Animation pulse pour l'enregistrement */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
         /* Réservation d'espace pour les éléments qui apparaissent dynamiquement */
         #selected_user_info {
             min-height: 0;
@@ -786,6 +958,52 @@
             background: #005c91;
         }
 
+        /* Styles pour la validation côté client */
+        .has-media .border-red-500 {
+            border-color: #10b981 !important;
+        }
+
+        .media-required {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+
+        /* Styles pour les prévisualisations de médias */
+        .media-preview-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .media-preview-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .media-preview-item .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .media-preview-item:hover .overlay {
+            opacity: 1;
+        }
+
+        .media-preview-item .delete-btn {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+        }
+
+        .media-preview-item:hover .delete-btn {
+            opacity: 1;
+            transform: scale(1);
+        }
+
         /* Amélioration de la responsivité pour les écrans les plus petits */
         @media (max-width: 640px) {
 
@@ -806,7 +1024,17 @@
                 grid-gap: 0.75rem;
             }
 
-            /* Éliminer les marges excessives sur petits écrans */
+            #camera-modal .max-w-2xl,
+            #video-modal .max-w-2xl {
+                max-width: 95vw;
+                margin: 0 10px;
+            }
+
+            #camera-modal video,
+            #video-modal video {
+                max-height: 250px;
+            }
+
             .mb-6 {
                 margin-bottom: 1rem;
             }
@@ -815,7 +1043,6 @@
                 margin-top: 0.75rem;
             }
 
-            /* Réduire la taille des boutons sur petits écrans */
             button,
             .button {
                 padding-top: 0.5rem;
@@ -864,19 +1091,74 @@
             opacity: 0.65;
         }
 
-        /* Styles pour la validation côté client */
-        .has-media .border-red-500 {
-            border-color: #10b981 !important;
+        /* Styles pour les notifications */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 60;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            color: white;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
         }
 
-        .media-required {
-            border-color: #ef4444 !important;
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: #10b981;
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        .notification.info {
+            background-color: #3b82f6;
+        }
+
+        /* Styles pour les zones de drop actives */
+        #media-drop-zone.drag-over {
+            border-color: #0077be;
+            background-color: #eff6ff;
+            transform: scale(1.02);
+        }
+
+        /* Styles pour les compteurs de médias */
+        .media-counter {
+            font-weight: 600;
+            color: #0077be;
+        }
+
+        .media-counter.warning {
+            color: #f59e0b;
+        }
+
+        .media-counter.danger {
+            color: #ef4444;
         }
     </style>
-
     <script>
+        // Variables globales pour la gestion des médias et de la caméra
+        let currentStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let currentFacingMode = 'environment'; // 'user' pour caméra avant, 'environment' pour arrière
+        let recordingInterval = null;
+        let recordingStartTime = null;
+        let currentSelection = null;
+        let originalUsersList = null;
+
+        // Variables pour les médias sélectionnés
+        window.selectedImages = [];
+        window.selectedVideos = [];
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Éléments DOM
+            // Éléments DOM principaux
             const userSearch = document.getElementById('user_search');
             const clearSearch = document.getElementById('clear-search');
             const usersList = document.querySelector('.divide-y');
@@ -905,21 +1187,44 @@
             const submitIcon = document.getElementById('submit-icon');
             const loadingSpinner = document.getElementById('loading-spinner');
 
-            let currentSelection = null;
-            let originalUsersList = null;
+            // Éléments DOM pour la caméra et les médias
+            const takePhotoBtn = document.getElementById('take-photo-btn');
+            const recordVideoBtn = document.getElementById('record-video-btn');
+            const selectImagesBtn = document.getElementById('select-images-btn');
+            const selectVideosBtn = document.getElementById('select-videos-btn');
+            const cameraModal = document.getElementById('camera-modal');
+            const videoModal = document.getElementById('video-modal');
+            const closeCameraBtn = document.getElementById('close-camera-btn');
+            const closeVideoBtn = document.getElementById('close-video-btn');
+            const capturePhotoBtn = document.getElementById('capture-photo-btn');
+            const switchCameraBtn = document.getElementById('switch-camera-btn');
+            const switchVideoCameraBtn = document.getElementById('switch-video-camera-btn');
+            const startRecordingBtn = document.getElementById('start-recording-btn');
+            const stopRecordingBtn = document.getElementById('stop-recording-btn');
+            const cameraVideo = document.getElementById('camera-video');
+            const videoCameraElement = document.getElementById('video-camera');
+            const cameraCanvas = document.getElementById('camera-canvas');
+            const recordingIndicator = document.getElementById('recording-indicator');
+            const recordingTime = document.getElementById('recording-time');
+            const imageInput = document.getElementById('images-input');
+            const videoInput = document.getElementById('videos-input');
+            const mediaDropZone = document.getElementById('media-drop-zone');
+            const imagePreview = document.getElementById('image-preview');
+            const videoPreview = document.getElementById('video-preview');
+            const imagesSection = document.getElementById('images-section');
+            const videosSection = document.getElementById('videos-section');
+            const imagesCount = document.getElementById('images-count');
+            const videosCount = document.getElementById('videos-count');
 
             // Amélioration de la gestion des labels flottants
             document.querySelectorAll('.floating-label input, .floating-label textarea, .floating-label select')
                 .forEach(element => {
-                    // S'assurer que les placeholders sont vides pour éviter le chevauchement avec les labels
                     element.setAttribute('placeholder', ' ');
 
-                    // Applique la classe active si le champ a une valeur initiale
                     if (element.value) {
                         element.classList.add('has-value');
                     }
 
-                    // Gestion des événements focus/blur pour l'animation des labels
                     element.addEventListener('focus', function() {
                         this.classList.add('focused');
                     });
@@ -933,284 +1238,453 @@
                         }
                     });
 
-                    // Pour les champs avec valeur
                     if (element.value) {
                         element.classList.add('has-value');
                     }
                 });
 
-            // Sauvegarder la liste originale des utilisateurs pour pouvoir y revenir
+            // Sauvegarder la liste originale des utilisateurs
             if (usersList) {
                 originalUsersList = usersList.innerHTML;
             }
 
-            // Onglets mobile - amélioration de la gestion
+            // Vérifier la disponibilité de la caméra
+            checkCameraAvailability();
+
+            // Initialisation des gestionnaires d'événements
+            initializeEventListeners();
+            initializeUsersList();
+            initializeMediaHandlers();
+
+            // Initialisation des sélecteurs de pays/ville
+            if (countrySelect && countrySelect.value === '') {
+                countrySelect.value = 'France';
+                countrySelect.dispatchEvent(new Event('change'));
+            }
+
+            // Initialiser les capacités vidéo MP4
+            setTimeout(initializeVideoCapabilities, 1000);
+        });
+
+        // Vérification des formats vidéo supportés
+        function checkVideoFormatsSupport() {
+            const formats = [
+                'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
+                'video/mp4; codecs="avc1.42E01E"',
+                'video/mp4',
+                'video/webm; codecs="vp9, opus"',
+                'video/webm; codecs="vp8, opus"',
+                'video/webm'
+            ];
+
+            console.log('=== Support des formats vidéo ===');
+            formats.forEach(format => {
+                const supported = MediaRecorder.isTypeSupported(format);
+                console.log(`${format}: ${supported ? '✅' : '❌'}`);
+            });
+        }
+
+        // Initialisation des capacités vidéo
+        function initializeVideoCapabilities() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                checkVideoFormatsSupport();
+
+                const mp4Supported = MediaRecorder.isTypeSupported('video/mp4');
+                if (mp4Supported) {
+                    console.log('📹 Enregistrement MP4 natif disponible');
+                } else {
+                    console.log('📹 Enregistrement WebM disponible (conversion MP4 possible côté serveur)');
+                }
+            }
+        }
+
+        // Fonction pour vérifier la disponibilité de la caméra
+        function checkCameraAvailability() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                const takePhotoBtn = document.getElementById('take-photo-btn');
+                const recordVideoBtn = document.getElementById('record-video-btn');
+
+                if (takePhotoBtn) {
+                    takePhotoBtn.disabled = true;
+                    takePhotoBtn.innerHTML = '<i class="fas fa-camera-slash mr-2"></i>Caméra non disponible';
+                    takePhotoBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+
+                if (recordVideoBtn) {
+                    recordVideoBtn.disabled = true;
+                    recordVideoBtn.innerHTML = '<i class="fas fa-video-slash mr-2"></i>Caméra non disponible';
+                    recordVideoBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+
+        // Initialisation des gestionnaires d'événements principaux
+        function initializeEventListeners() {
+            // Gestionnaires pour les onglets mobile
+            const tabUsersBtn = document.getElementById('tab-users-btn');
+            const tabFormBtn = document.getElementById('tab-form-btn');
+
             if (tabUsersBtn && tabFormBtn) {
-                tabUsersBtn.addEventListener('click', function() {
-                    activateTab('users');
-                });
+                tabUsersBtn.addEventListener('click', () => activateTab('users'));
+                tabFormBtn.addEventListener('click', () => activateTab('form'));
+            }
 
-                tabFormBtn.addEventListener('click', function() {
-                    activateTab('form');
-                });
+            // Gestionnaires pour la recherche d'utilisateurs
+            const userSearch = document.getElementById('user_search');
+            const clearSearch = document.getElementById('clear-search');
 
-                function activateTab(tabName) {
-                    if (tabName === 'users') {
-                        tabUsersBtn.classList.add('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
-                        tabUsersBtn.classList.remove('text-gray-500', 'border-transparent');
-                        tabFormBtn.classList.remove('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
-                        tabFormBtn.classList.add('text-gray-500', 'border-transparent');
+            if (userSearch) {
+                let searchTimeout;
+                userSearch.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.trim();
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => searchUsers(searchTerm), 300);
 
-                        usersTab.classList.remove('hidden');
-                        formTab.classList.add('hidden');
+                    if (searchTerm.length > 0) {
+                        clearSearch?.classList.remove('hidden');
                     } else {
-                        tabFormBtn.classList.add('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
-                        tabFormBtn.classList.remove('text-gray-500', 'border-transparent');
-                        tabUsersBtn.classList.remove('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
-                        tabUsersBtn.classList.add('text-gray-500', 'border-transparent');
-
-                        formTab.classList.remove('hidden');
-                        usersTab.classList.add('hidden');
-                    }
-                }
-            }
-
-            // Connecter le bouton "Voir la liste" à l'onglet utilisateurs sur mobile
-            if (showUsersTabBtn && tabUsersBtn) {
-                showUsersTabBtn.addEventListener('click', function() {
-                    tabUsersBtn.click();
-                });
-            }
-
-            // Initialisation améliorée des sélecteurs de ville et pays
-            if (countrySelect) {
-                // Pré-sélectionner la France par défaut si aucune valeur n'est présente
-                if (countrySelect.value === '') {
-                    countrySelect.value = 'France';
-                    // Déclencher un événement change pour mettre à jour les villes associées
-                    countrySelect.dispatchEvent(new Event('change'));
-                }
-            }
-
-            // Initialisation
-            function initializeUsersList() {
-                document.querySelectorAll('.user-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        selectUser(item);
-                        // Basculer vers l'onglet formulaire sur mobile après sélection
-                        if (window.innerWidth < 768 && tabFormBtn) {
-                            activateTab('form');
-                        }
-                    });
-                });
-            }
-
-            // Sélection d'un utilisateur
-            function selectUser(userElement) {
-                // Retirer la sélection précédente
-                if (currentSelection) {
-                    currentSelection.classList.remove('bg-[#0077be]/10');
-                    currentSelection.querySelector('.selected-check').classList.add('hidden');
-                }
-
-                // Mettre à jour la nouvelle sélection
-                currentSelection = userElement;
-                userElement.classList.add('bg-[#0077be]/10');
-                userElement.querySelector('.selected-check').classList.remove('hidden');
-
-                // Mettre à jour les champs cachés et l'affichage
-                const userId = userElement.dataset.userId;
-                const userName = userElement.dataset.userName;
-                const userEmail = userElement.dataset.userEmail;
-                const userPhone = userElement.dataset.userPhone;
-                const initials = userName.split(' ')
-                    .map(n => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2);
-
-                userIdInput.value = userId; // Mettre à jour l'ID de l'utilisateur dans le champ caché
-                document.getElementById('user_avatar').textContent = initials;
-                document.getElementById('user_name').textContent = userName;
-                document.getElementById('user_email').textContent = userEmail || 'Pas d\'email';
-                document.getElementById('user_phone').textContent = userPhone || 'Pas de téléphone';
-
-                selectedUserInfo.classList.remove('hidden');
-                noUserSelected.classList.add('hidden');
-
-                // Valider si on peut activer le bouton submit
-                validateForm();
-            }
-
-            // Recherche améliorée et optimisée
-            function searchUsers(term) {
-                showSpinner();
-                clearSearch.classList.add('hidden');
-
-                if (!term || term.length < 2) {
-                    // Si le terme de recherche est vide ou trop court, réinitialiser
-                    if (originalUsersList) {
-                        usersList.innerHTML = originalUsersList;
-                        initializeUsersList();
-                    }
-                    hideSpinner();
-                    if (term.length === 0) {
-                        clearSearch.classList.add('hidden');
-                    }
-                    return;
-                }
-
-                // Filtrer les éléments existants côté client
-                const items = document.querySelectorAll('.user-item');
-                const results = [];
-                const termLower = term.toLowerCase();
-
-                items.forEach(item => {
-                    const userName = item.dataset.userName.toLowerCase();
-                    const userEmail = (item.dataset.userEmail || '').toLowerCase();
-                    const userPhone = (item.dataset.userPhone || '').toLowerCase();
-
-                    if (userName.includes(termLower) ||
-                        userEmail.includes(termLower) ||
-                        userPhone.includes(termLower)) {
-                        results.push(item.cloneNode(true));
+                        clearSearch?.classList.add('hidden');
                     }
                 });
 
-                // Mettre à jour l'affichage avec les résultats
-                updateUsersList(results);
+                userSearch.addEventListener('focus', function() {
+                    this.select();
+                });
 
-                if (term.length > 0) {
-                    clearSearch.classList.remove('hidden');
-                }
-
-                hideSpinner();
+                userSearch.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        userSearch.value = '';
+                        clearSearch?.classList.add('hidden');
+                        searchUsers('');
+                    }
+                });
             }
 
-            // Mise à jour de la liste des utilisateurs avec UX améliorée
-            function updateUsersList(items) {
-                usersList.innerHTML = '';
+            if (clearSearch) {
+                clearSearch.addEventListener('click', function() {
+                    userSearch.value = '';
+                    clearSearch.classList.add('hidden');
+                    searchUsers('');
+                    userSearch.focus();
+                });
+            }
 
-                if (items && items.length > 0) {
-                    items.forEach(item => {
-                        usersList.appendChild(item);
-                    });
+            // Gestionnaire pour effacer la sélection d'utilisateur
+            const clearSelection = document.getElementById('clear_selection');
+            if (clearSelection) {
+                clearSelection.addEventListener('click', clearUserSelection);
+            }
+
+            // Gestionnaires pour les points de service
+            const countrySelect = document.getElementById('country');
+            const cityInput = document.getElementById('city');
+
+            if (countrySelect && cityInput) {
+                countrySelect.addEventListener('change', updateServicePoints);
+                cityInput.addEventListener('input', handleCityInput);
+                cityInput.addEventListener('change', updateServicePoints);
+
+                if (countrySelect.value) {
+                    setTimeout(updateServicePoints, 300);
+                }
+            }
+
+            // Gestionnaires pour la validation des champs
+            initializeFieldValidation();
+        }
+
+        // Activation des onglets mobile
+        function activateTab(tabName) {
+            const tabUsersBtn = document.getElementById('tab-users-btn');
+            const tabFormBtn = document.getElementById('tab-form-btn');
+            const usersTab = document.getElementById('users-tab');
+            const formTab = document.getElementById('form-tab');
+
+            if (tabName === 'users') {
+                tabUsersBtn?.classList.add('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
+                tabUsersBtn?.classList.remove('text-gray-500', 'border-transparent');
+                tabFormBtn?.classList.remove('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
+                tabFormBtn?.classList.add('text-gray-500', 'border-transparent');
+
+                usersTab?.classList.remove('hidden');
+                formTab?.classList.add('hidden');
+            } else {
+                tabFormBtn?.classList.add('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
+                tabFormBtn?.classList.remove('text-gray-500', 'border-transparent');
+                tabUsersBtn?.classList.remove('text-[#0077be]', 'border-[#0077be]', 'bg-white/90');
+                tabUsersBtn?.classList.add('text-gray-500', 'border-transparent');
+
+                formTab?.classList.remove('hidden');
+                usersTab?.classList.add('hidden');
+            }
+        }
+        // Initialisation de la liste des utilisateurs
+        function initializeUsersList() {
+            document.querySelectorAll('.user-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectUser(item);
+                    if (window.innerWidth < 768) {
+                        activateTab('form');
+                    }
+                });
+            });
+        }
+
+        // Sélection d'un utilisateur
+        function selectUser(userElement) {
+            if (currentSelection) {
+                currentSelection.classList.remove('bg-[#0077be]/10');
+                currentSelection.querySelector('.selected-check').classList.add('hidden');
+            }
+
+            currentSelection = userElement;
+            userElement.classList.add('bg-[#0077be]/10');
+            userElement.querySelector('.selected-check').classList.remove('hidden');
+
+            const userId = userElement.dataset.userId;
+            const userName = userElement.dataset.userName;
+            const userEmail = userElement.dataset.userEmail;
+            const userPhone = userElement.dataset.userPhone;
+            const initials = userName.split(' ')
+                .map(n => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2);
+
+            const userIdInput = document.getElementById('user_id');
+            const selectedUserInfo = document.getElementById('selected_user_info');
+            const noUserSelected = document.getElementById('no_user_selected');
+
+            if (userIdInput) userIdInput.value = userId;
+
+            const userAvatar = document.getElementById('user_avatar');
+            const userNameEl = document.getElementById('user_name');
+            const userEmailEl = document.getElementById('user_email');
+            const userPhoneEl = document.getElementById('user_phone');
+
+            if (userAvatar) userAvatar.textContent = initials;
+            if (userNameEl) userNameEl.textContent = userName;
+            if (userEmailEl) userEmailEl.textContent = userEmail || 'Pas d\'email';
+            if (userPhoneEl) userPhoneEl.textContent = userPhone || 'Pas de téléphone';
+
+            selectedUserInfo?.classList.remove('hidden');
+            noUserSelected?.classList.add('hidden');
+
+            validateForm();
+        }
+
+        // Recherche d'utilisateurs
+        function searchUsers(term) {
+            const searchSpinner = document.getElementById('search_spinner');
+            const clearSearch = document.getElementById('clear-search');
+            const usersList = document.querySelector('.divide-y');
+
+            showSpinner();
+            clearSearch?.classList.add('hidden');
+
+            if (!term || term.length < 2) {
+                if (originalUsersList && usersList) {
+                    usersList.innerHTML = originalUsersList;
                     initializeUsersList();
-                } else {
-                    usersList.innerHTML = `
-                        <div class="p-6 text-center">
-                            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
-                                <i class="fas fa-search text-gray-400"></i>
-                            </div>
-                            <p class="text-gray-500">Aucun utilisateur trouvé</p>
-                            <p class="text-xs text-gray-400 mt-1">Essayez d'autres termes de recherche</p>
+                }
+                hideSpinner();
+                if (term.length === 0) {
+                    clearSearch?.classList.add('hidden');
+                }
+                return;
+            }
+
+            const items = document.querySelectorAll('.user-item');
+            const results = [];
+            const termLower = term.toLowerCase();
+
+            items.forEach(item => {
+                const userName = item.dataset.userName.toLowerCase();
+                const userEmail = (item.dataset.userEmail || '').toLowerCase();
+                const userPhone = (item.dataset.userPhone || '').toLowerCase();
+
+                if (userName.includes(termLower) ||
+                    userEmail.includes(termLower) ||
+                    userPhone.includes(termLower)) {
+                    results.push(item.cloneNode(true));
+                }
+            });
+
+            updateUsersList(results);
+
+            if (term.length > 0) {
+                clearSearch?.classList.remove('hidden');
+            }
+
+            hideSpinner();
+        }
+
+        // Mise à jour de la liste des utilisateurs
+        function updateUsersList(items) {
+            const usersList = document.querySelector('.divide-y');
+            if (!usersList) return;
+
+            usersList.innerHTML = '';
+
+            if (items && items.length > 0) {
+                items.forEach(item => {
+                    usersList.appendChild(item);
+                });
+                initializeUsersList();
+            } else {
+                usersList.innerHTML = `
+                    <div class="p-6 text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
+                            <i class="fas fa-search text-gray-400"></i>
                         </div>
-                    `;
-                }
+                        <p class="text-gray-500">Aucun utilisateur trouvé</p>
+                        <p class="text-xs text-gray-400 mt-1">Essayez d'autres termes de recherche</p>
+                    </div>
+                `;
             }
+        }
 
-            // Gestion du spinner
-            function showSpinner() {
-                if (searchSpinner) {
-                    searchSpinner.classList.remove('hidden');
-                }
+        // Gestion du spinner de recherche
+        function showSpinner() {
+            const searchSpinner = document.getElementById('search_spinner');
+            searchSpinner?.classList.remove('hidden');
+        }
+
+        function hideSpinner() {
+            const searchSpinner = document.getElementById('search_spinner');
+            searchSpinner?.classList.add('hidden');
+        }
+
+        // Réinitialisation de la sélection d'utilisateur
+        function clearUserSelection() {
+            if (currentSelection) {
+                currentSelection.classList.remove('bg-[#0077be]/10');
+                currentSelection.querySelector('.selected-check').classList.add('hidden');
             }
+            currentSelection = null;
 
-            function hideSpinner() {
-                if (searchSpinner) {
-                    searchSpinner.classList.add('hidden');
-                }
+            const userIdInput = document.getElementById('user_id');
+            const selectedUserInfo = document.getElementById('selected_user_info');
+            const noUserSelected = document.getElementById('no_user_selected');
+            const submitButton = document.getElementById('submit_button');
+
+            if (userIdInput) userIdInput.value = '';
+            selectedUserInfo?.classList.add('hidden');
+            noUserSelected?.classList.remove('hidden');
+            if (submitButton) submitButton.disabled = true;
+        }
+
+        // Gestion des points de service
+        const servicePoints = {
+            'France': {
+                'Paris': ['Gare du Nord', 'Gare de Lyon', 'République'],
+                // 'Lyon': ['Part-Dieu', 'Perrache', 'Bellecour'],
+                // 'Marseille': ['Gare Saint-Charles', 'Vieux Port']
+            },
+            'Cameroun': {
+                'Douala': ['Aeroport International de Douala', 'Logpom Montana city'],
+                'Yaoundé': ['Aeroport International de Nsimalen', 'Centre-ville']
+            },
+            'Belgique': {
+                'Bruxelles': ['Gare Centrale', 'Avenue Louise', 'Grand Place'],
+                'Liège': ['Guillemins', 'Saint-Lambert']
             }
+        };
 
-            // Réinitialisation de la sélection
-            function clearUserSelection() {
-                if (currentSelection) {
-                    currentSelection.classList.remove('bg-[#0077be]/10');
-                    currentSelection.querySelector('.selected-check').classList.add('hidden');
+        // Mise à jour des points de service
+        function updateServicePoints() {
+            const countrySelect = document.getElementById('country');
+            const cityInput = document.getElementById('city');
+            const servicePointsContainer = document.getElementById('service-points-container');
+            const servicePointsList = document.getElementById('service-points-list');
+
+            if (!countrySelect || !cityInput || !servicePointsContainer || !servicePointsList) return;
+
+            const country = countrySelect.value;
+            const city = cityInput.value.trim();
+
+            if (country && city && servicePoints[country] && servicePoints[country][city]) {
+                const points = servicePoints[country][city];
+                servicePointsList.innerHTML = points.map(point =>
+                    `<div class="flex items-start">
+                        <i class="fas fa-circle text-[#0077be] text-[6px] mt-1.5 mr-1.5"></i>
+                        <span>${point}</span>
+                    </div>`
+                ).join('');
+
+                if (servicePointsContainer.classList.contains('hidden')) {
+                    servicePointsContainer.classList.remove('hidden');
+                    servicePointsContainer.classList.add('animate-fade-in');
+                    setTimeout(() => {
+                        servicePointsContainer.classList.remove('animate-fade-in');
+                    }, 300);
                 }
-                currentSelection = null;
-                userIdInput.value = '';
-                selectedUserInfo.classList.add('hidden');
-                noUserSelected.classList.remove('hidden');
-                submitButton.disabled = true;
+            } else {
+                servicePointsContainer.classList.add('hidden');
             }
+        }
 
-            // Points de service
-            const servicePoints = {
-                'France': {
-                    'Paris': ['Gare du Nord', 'Gare de Lyon', 'République'],
-                    'Lyon': ['Part-Dieu', 'Perrache', 'Bellecour'],
-                    'Marseille': ['Gare Saint-Charles', 'Vieux Port']
-                },
-                'Cameroun': {
-                    'Douala': ['Aeroport International de Douala', 'Akwa', 'Bonanjo'],
-                    'Yaoundé': ['Aeroport International de Nsimalen', 'Centre-ville']
-                },
-                'Belgique': {
-                    'Bruxelles': ['Gare Centrale', 'Avenue Louise', 'Grand Place'],
-                    'Liège': ['Guillemins', 'Saint-Lambert']
-                }
-            };
+        // Gestion de l'input ville avec auto-complétion
+        function handleCityInput(e) {
+            const countrySelect = document.getElementById('country');
+            const cityValue = e.target.value.trim();
+            const country = countrySelect?.value;
 
-            // Mise à jour des points de service avec animation
-            function updateServicePoints() {
-                const country = countrySelect.value;
-                const city = cityInput.value.trim();
+            if (country && cityValue && servicePoints[country]) {
+                updateServicePoints();
 
-                if (country && city && servicePoints[country] && servicePoints[country][city]) {
-                    const points = servicePoints[country][city];
-                    servicePointsList.innerHTML = points.map(point =>
-                        `<div class="flex items-start">
-                            <i class="fas fa-circle text-[#0077be] text-[6px] mt-1.5 mr-1.5"></i>
-                            <span>${point}</span>
-                        </div>`
-                    ).join('');
+                if (cityValue.length >= 2) {
+                    const cityValueLower = cityValue.toLowerCase();
+                    const cities = Object.keys(servicePoints[country]);
 
-                    if (servicePointsContainer.classList.contains('hidden')) {
-                        servicePointsContainer.classList.remove('hidden');
-                        servicePointsContainer.classList.add('animate-fade-in');
-                        setTimeout(() => {
-                            servicePointsContainer.classList.remove('animate-fade-in');
-                        }, 300);
+                    for (const city of cities) {
+                        if (city.toLowerCase().startsWith(cityValueLower)) {
+                            if (e.inputType !== 'deleteContentBackward' && e.inputType !== 'deleteContentForward') {
+                                e.target.value = city;
+                                e.target.setSelectionRange(cityValue.length, city.length);
+                                break;
+                            }
+                        }
                     }
-                } else {
-                    servicePointsContainer.classList.add('hidden');
                 }
             }
+        }
 
+        // Initialisation de la validation des champs
+        function initializeFieldValidation() {
             // Compteur de caractères pour la description
+            const descriptionColis = document.getElementById('description_colis');
+            const charCount = document.getElementById('char-count');
+
             if (descriptionColis && charCount) {
                 function updateCount() {
                     const count = descriptionColis.value.length;
                     charCount.textContent = count;
 
-                    // Changer la couleur quand on approche de la limite
+                    charCount.classList.remove('text-orange-500', 'text-red-500');
                     if (count > 450) {
                         charCount.classList.add('text-orange-500');
                         if (count > 480) {
                             charCount.classList.add('text-red-500');
                             charCount.classList.remove('text-orange-500');
                         }
-                    } else {
-                        charCount.classList.remove('text-orange-500', 'text-red-500');
                     }
                 }
 
                 descriptionColis.addEventListener('input', updateCount);
-                updateCount(); // Initialisation
+                updateCount();
             }
 
             // Validation du numéro de téléphone
+            const phoneInput = document.getElementById('recipient_phone');
             if (phoneInput) {
                 phoneInput.addEventListener('input', function(e) {
                     const value = e.target.value;
 
-                    // Correction automatique du format
                     if (value && !value.startsWith('+')) {
                         e.target.value = '+' + value;
                     }
 
-                    // Validation en temps réel avec feedback visuel
                     if (value.length > 3) {
                         if (!/^\+[1-9]\d{1,14}$/.test(value)) {
                             phoneInput.classList.add('border-orange-400');
@@ -1225,11 +1699,11 @@
                 });
             }
 
-            // Amélioration du formatage des nombres
+            // Formatage des nombres
+            const priceInput = document.getElementById('price');
             if (priceInput) {
                 priceInput.addEventListener('blur', function() {
                     if (this.value) {
-                        // Formater avec 2 décimales
                         const value = parseFloat(this.value);
                         if (!isNaN(value)) {
                             this.value = value.toFixed(2);
@@ -1238,10 +1712,31 @@
                 });
             }
 
+            // Calculateur de poids avec affichage du poids facturé
+            const weightInput = document.getElementById('weight');
             if (weightInput) {
+                weightInput.addEventListener('input', function() {
+                    const actualWeight = parseFloat(this.value);
+                    const billedWeightDisplay = document.getElementById('billed-weight-display');
+                    const billedWeightValue = document.getElementById('billed-weight-value');
+
+                    if (!isNaN(actualWeight) && actualWeight > 0) {
+                        const billedWeight = calculateBilledWeight(actualWeight);
+                        if (billedWeightValue) billedWeightValue.textContent = billedWeight + ' kg';
+                        if (billedWeightDisplay) {
+                            billedWeightDisplay.classList.remove('hidden');
+                            billedWeightDisplay.classList.add('animate-fade-in');
+                            setTimeout(() => {
+                                billedWeightDisplay.classList.remove('animate-fade-in');
+                            }, 300);
+                        }
+                    } else {
+                        if (billedWeightDisplay) billedWeightDisplay.classList.add('hidden');
+                    }
+                });
+
                 weightInput.addEventListener('blur', function() {
                     if (this.value) {
-                        // Formater avec 1 décimale
                         const value = parseFloat(this.value);
                         if (!isNaN(value)) {
                             this.value = value.toFixed(1);
@@ -1250,136 +1745,8 @@
                 });
             }
 
-            // Fonction de validation du formulaire
-            function validateForm() {
-                const hasUser = userIdInput.value !== '';
-                const hasImages = selectedImages.length > 0;
-                const hasVideos = selectedVideos.length > 0;
-                const hasMedia = hasImages || hasVideos;
-
-                // Le bouton submit n'est activé que si un utilisateur est sélectionné et qu'il y a des médias
-                if (hasUser && hasMedia) {
-                    submitButton.disabled = false;
-                    // Retirer les styles d'erreur des zones de médias
-                    document.getElementById('image-drop-zone').classList.remove('media-required');
-                    document.getElementById('video-drop-zone').classList.remove('media-required');
-                } else {
-                    submitButton.disabled = true;
-                    // Ajouter des styles d'erreur si nécessaire
-                    if (hasUser && !hasMedia) {
-                        document.getElementById('image-drop-zone').classList.add('media-required');
-                        document.getElementById('video-drop-zone').classList.add('media-required');
-                    }
-                }
-            }
-
-            // Event Listeners
-            let searchTimeout;
-            if (userSearch) {
-                userSearch.addEventListener('input', function(e) {
-                    const searchTerm = e.target.value.trim();
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => searchUsers(searchTerm), 300);
-
-                    // Afficher ou masquer le bouton clear
-                    if (searchTerm.length > 0) {
-                        clearSearch.classList.remove('hidden');
-                    } else {
-                        clearSearch.classList.add('hidden');
-                    }
-                });
-
-                // Mise en évidence automatique du contenu lors du focus
-                userSearch.addEventListener('focus', function() {
-                    this.select();
-                });
-
-                // Suggestion de recherche
-                const commonSearchTerms = ['nom', 'prénom', 'email', 'téléphone'];
-                let currentSuggestionIndex = 0;
-
-                // Montrer des suggestions quand le champ est vide
-                userSearch.addEventListener('focus', function() {
-                    if (!this.value) {
-                        const placeholder = commonSearchTerms[currentSuggestionIndex];
-                        this.setAttribute('placeholder', `Rechercher par ${placeholder}...`);
-                        currentSuggestionIndex = (currentSuggestionIndex + 1) % commonSearchTerms.length;
-                    }
-                });
-
-                // Restaurer le placeholder par défaut au blur
-                userSearch.addEventListener('blur', function() {
-                    if (!this.value) {
-                        this.setAttribute('placeholder', 'Rechercher un utilisateur...');
-                    }
-                });
-
-                // Ajouter un gestionnaire d'événements pour la touche Escape
-                userSearch.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        userSearch.value = '';
-                        clearSearch.classList.add('hidden');
-                        searchUsers('');
-                    }
-                });
-            }
-
-            if (clearSearch) {
-                clearSearch.addEventListener('click', function() {
-                    userSearch.value = '';
-                    clearSearch.classList.add('hidden');
-                    searchUsers('');
-                    userSearch.focus(); // Remettre le focus sur le champ de recherche
-                });
-            }
-
-            if (clearSelection) {
-                clearSelection.addEventListener('click', clearUserSelection);
-            }
-
-            // Points de service listeners avec amélioration UX
-            if (countrySelect && cityInput) {
-                countrySelect.addEventListener('change', updateServicePoints);
-
-                // Auto-complétion améliorée pour les villes
-                cityInput.addEventListener('input', function(e) {
-                    const country = countrySelect.value;
-                    const cityValue = e.target.value.trim();
-
-                    if (country && cityValue && servicePoints[country]) {
-                        updateServicePoints();
-
-                        // Proposer l'auto-complétion uniquement si la valeur a au moins 2 caractères
-                        if (cityValue.length >= 2) {
-                            const cityValueLower = cityValue.toLowerCase();
-                            const cities = Object.keys(servicePoints[country]);
-
-                            for (const city of cities) {
-                                if (city.toLowerCase().startsWith(cityValueLower)) {
-                                    // Ne pas auto-compléter si l'utilisateur est en train de supprimer du texte
-                                    if (e.inputType !== 'deleteContentBackward' && e.inputType !==
-                                        'deleteContentForward') {
-                                        e.target.value = city;
-
-                                        // Sélectionner le texte supplémentaire pour faciliter la correction
-                                        e.target.setSelectionRange(cityValue.length, city.length);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-
-                cityInput.addEventListener('change', updateServicePoints);
-
-                // Mise à jour initiale des points de service si un pays est déjà sélectionné
-                if (countrySelect.value) {
-                    setTimeout(updateServicePoints, 300);
-                }
-            }
-
-            // Validation du formulaire améliorée
+            // Validation du formulaire
+            const form = document.querySelector('form');
             if (form) {
                 const requiredFields = form.querySelectorAll('[required]');
 
@@ -1387,12 +1754,9 @@
                     field.addEventListener('invalid', function(e) {
                         e.preventDefault();
                         field.classList.add('border-red-500');
-
-                        // Animation plus subtile
                         field.classList.add('animate-shake');
                         setTimeout(() => field.classList.remove('animate-shake'), 500);
 
-                        // Créer un message d'erreur s'il n'existe pas déjà
                         const parentNode = field.closest('.floating-label') || field.parentNode;
                         let errorMsg = parentNode.querySelector('.error-message');
 
@@ -1400,12 +1764,10 @@
                             errorMsg = document.createElement('p');
                             errorMsg.className = 'text-red-500 text-xs mt-1 error-message';
 
-                            // Messages plus précis selon le type de champ
                             if (field.type === 'email') {
                                 errorMsg.innerText = 'Veuillez entrer une adresse email valide';
                             } else if (field.type === 'tel') {
-                                errorMsg.innerText =
-                                    'Veuillez entrer un numéro de téléphone valide';
+                                errorMsg.innerText = 'Veuillez entrer un numéro de téléphone valide';
                             } else if (field.type === 'number') {
                                 errorMsg.innerText = 'Veuillez entrer une valeur numérique';
                             } else {
@@ -1415,11 +1777,8 @@
                             parentNode.appendChild(errorMsg);
                         }
 
-                        // Si on est sur l'onglet mobile et que le champ n'est pas visible, changer d'onglet
-                        if (window.innerWidth < 768 && !isElementInViewport(field) && tabFormBtn) {
+                        if (window.innerWidth < 768 && !isElementInViewport(field)) {
                             activateTab('form');
-
-                            // Faire défiler jusqu'au champ avec erreur
                             setTimeout(() => {
                                 field.scrollIntoView({
                                     behavior: 'smooth',
@@ -1433,312 +1792,803 @@
 
                     field.addEventListener('input', function() {
                         field.classList.remove('border-red-500');
-
                         const parentNode = field.closest('.floating-label') || field.parentNode;
                         const errorMsg = parentNode.querySelector('.error-message');
                         if (errorMsg) errorMsg.remove();
                     });
                 });
 
-                // Gestion de l'état de soumission du formulaire
                 form.addEventListener('submit', function(e) {
-                    // Vérification finale des médias
-                    if (selectedImages.length === 0 && selectedVideos.length === 0) {
+                    if (window.selectedImages.length === 0 && window.selectedVideos.length === 0) {
                         e.preventDefault();
-                        alert('Veuillez ajouter au moins une image ou une vidéo du colis.');
+                        showNotification('Veuillez ajouter au moins une image ou une vidéo du colis.', 'error');
                         return false;
                     }
 
-                    // Désactiver le bouton et afficher l'état de chargement
-                    submitButton.disabled = true;
-                    submitText.textContent = 'Création en cours...';
-                    submitIcon.classList.add('hidden');
-                    loadingSpinner.classList.remove('hidden');
+                    const submitButton = document.getElementById('submit_button');
+                    const submitText = document.getElementById('submit-text');
+                    const submitIcon = document.getElementById('submit-icon');
+                    const loadingSpinner = document.getElementById('loading-spinner');
+
+                    if (submitButton) submitButton.disabled = true;
+                    if (submitText) submitText.textContent = 'Création en cours...';
+                    if (submitIcon) submitIcon.classList.add('hidden');
+                    if (loadingSpinner) loadingSpinner.classList.remove('hidden');
+                });
+            }
+        }
+
+        // Calculateur de poids de transport
+        function calculateBilledWeight(actualWeight) {
+            if (actualWeight <= 0) return 0;
+            if (actualWeight <= 1.2) return 1;
+            if (actualWeight <= 2.2) return 2;
+            if (actualWeight <= 3.2) return 3;
+            if (actualWeight <= 4.2) return 4;
+            if (actualWeight <= 5.2) return 5;
+            if (actualWeight <= 6.2) return 6;
+            if (actualWeight <= 7.2) return 7;
+            if (actualWeight <= 8.2) return 8;
+            if (actualWeight <= 9.2) return 9;
+            if (actualWeight <= 10.2) return 10;
+            return Math.ceil(actualWeight - 0.2);
+        }
+
+        // Validation du formulaire
+        function validateForm() {
+            const userIdInput = document.getElementById('user_id');
+            const submitButton = document.getElementById('submit_button');
+            const mediaDropZone = document.getElementById('media-drop-zone');
+
+            const hasUser = userIdInput && userIdInput.value !== '';
+            const hasImages = window.selectedImages.length > 0;
+            const hasVideos = window.selectedVideos.length > 0;
+            const hasMedia = hasImages || hasVideos;
+
+            if (hasUser && hasMedia) {
+                if (submitButton) submitButton.disabled = false;
+                if (mediaDropZone) mediaDropZone.classList.remove('media-required');
+            } else {
+                if (submitButton) submitButton.disabled = true;
+                if (hasUser && !hasMedia && mediaDropZone) {
+                    mediaDropZone.classList.add('media-required');
+                }
+            }
+        }
+
+        // Fonction utilitaire pour vérifier si un élément est visible
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+
+        // Ajustements pour les petits écrans
+        function adjustForSmallScreens() {
+            if (window.innerWidth < 360) {
+                document.querySelectorAll('.text-xs').forEach(el => {
+                    el.style.fontSize = '0.65rem';
+                });
+
+                document.querySelectorAll('.p-4').forEach(el => {
+                    el.classList.remove('p-4');
+                    el.classList.add('p-3');
+                });
+            }
+        }
+
+        // Initialiser les ajustements responsive
+        adjustForSmallScreens();
+        window.addEventListener('resize', adjustForSmallScreens);
+        // Initialisation des gestionnaires de médias et caméra
+        function initializeMediaHandlers() {
+            const takePhotoBtn = document.getElementById('take-photo-btn');
+            const recordVideoBtn = document.getElementById('record-video-btn');
+            const selectImagesBtn = document.getElementById('select-images-btn');
+            const selectVideosBtn = document.getElementById('select-videos-btn');
+            const cameraModal = document.getElementById('camera-modal');
+            const videoModal = document.getElementById('video-modal');
+            const closeCameraBtn = document.getElementById('close-camera-btn');
+            const closeVideoBtn = document.getElementById('close-video-btn');
+            const capturePhotoBtn = document.getElementById('capture-photo-btn');
+            const switchCameraBtn = document.getElementById('switch-camera-btn');
+            const switchVideoCameraBtn = document.getElementById('switch-video-camera-btn');
+            const startRecordingBtn = document.getElementById('start-recording-btn');
+            const stopRecordingBtn = document.getElementById('stop-recording-btn');
+            const imageInput = document.getElementById('images-input');
+            const videoInput = document.getElementById('videos-input');
+            const mediaDropZone = document.getElementById('media-drop-zone');
+
+            // Gestionnaires pour les boutons de caméra
+            takePhotoBtn?.addEventListener('click', async function() {
+                try {
+                    await openCamera();
+                    cameraModal?.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Erreur lors de l\'ouverture de la caméra:', error);
+                    showNotification('Impossible d\'accéder à la caméra. Vérifiez les permissions.', 'error');
+                }
+            });
+
+            recordVideoBtn?.addEventListener('click', async function() {
+                try {
+                    await openVideoCamera();
+                    videoModal?.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Erreur lors de l\'ouverture de la caméra vidéo:', error);
+                    showNotification('Impossible d\'accéder à la caméra. Vérifiez les permissions.', 'error');
+                }
+            });
+
+            // Gestionnaires pour la sélection de fichiers
+            selectImagesBtn?.addEventListener('click', () => imageInput?.click());
+            selectVideosBtn?.addEventListener('click', () => videoInput?.click());
+
+            imageInput?.addEventListener('change', function(e) {
+                handleImageFiles(Array.from(e.target.files));
+            });
+
+            videoInput?.addEventListener('change', function(e) {
+                handleVideoFiles(Array.from(e.target.files));
+            });
+
+            // Gestionnaires pour les modaux
+            closeCameraBtn?.addEventListener('click', function() {
+                closeCamera();
+                cameraModal?.classList.add('hidden');
+            });
+
+            closeVideoBtn?.addEventListener('click', function() {
+                closeVideoCamera();
+                videoModal?.classList.add('hidden');
+            });
+
+            // Gestionnaires pour les actions de caméra
+            capturePhotoBtn?.addEventListener('click', capturePhoto);
+            switchCameraBtn?.addEventListener('click', switchCamera);
+            switchVideoCameraBtn?.addEventListener('click', switchVideoCamera);
+            startRecordingBtn?.addEventListener('click', startRecording);
+            stopRecordingBtn?.addEventListener('click', stopRecording);
+
+            // Gestionnaires de drag & drop
+            if (mediaDropZone) {
+                mediaDropZone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+
+                mediaDropZone.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+                });
+
+                mediaDropZone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+
+                    const files = Array.from(e.dataTransfer.files);
+                    const images = files.filter(file => file.type.startsWith('image/'));
+                    const videos = files.filter(file => file.type.startsWith('video/'));
+
+                    if (images.length > 0) handleImageFiles(images);
+                    if (videos.length > 0) handleVideoFiles(videos);
                 });
             }
 
-            function isElementInViewport(el) {
-                const rect = el.getBoundingClientRect();
-                return (
-                    rect.top >= 0 &&
-                    rect.left >= 0 &&
-                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-                );
+            // Fermer les modaux en cliquant à l'extérieur
+            cameraModal?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCamera();
+                    this.classList.add('hidden');
+                }
+            });
+
+            videoModal?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeVideoCamera();
+                    this.classList.add('hidden');
+                }
+            });
+        }
+
+        // Ouvrir la caméra pour photo
+        async function openCamera() {
+            const cameraLoading = document.getElementById('camera-loading');
+
+            try {
+                if (cameraLoading) cameraLoading.classList.remove('hidden');
+
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const cameraVideo = document.getElementById('camera-video');
+                if (cameraVideo) {
+                    cameraVideo.srcObject = currentStream;
+                }
+
+                if (cameraLoading) cameraLoading.classList.add('hidden');
+            } catch (error) {
+                if (cameraLoading) cameraLoading.classList.add('hidden');
+                console.error('Erreur d\'accès à la caméra:', error);
+                throw error;
             }
+        }
 
-            // Initialisation
-            initializeUsersList();
+        // Ouvrir la caméra pour vidéo
+        async function openVideoCamera() {
+            const videoLoading = document.getElementById('video-loading');
 
-            // Amélioration de la responsivité pour les écrans les plus petits
-            function adjustForSmallScreens() {
-                if (window.innerWidth < 360) {
-                    document.querySelectorAll('.text-xs').forEach(el => {
-                        el.style.fontSize = '0.65rem';
-                    });
+            try {
+                if (videoLoading) videoLoading.classList.remove('hidden');
 
-                    // Réduire les marges et paddings
-                    document.querySelectorAll('.p-4').forEach(el => {
-                        el.classList.remove('p-4');
-                        el.classList.add('p-3');
-                    });
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: true
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoCameraElement = document.getElementById('video-camera');
+                if (videoCameraElement) {
+                    videoCameraElement.srcObject = currentStream;
+                }
+
+                if (videoLoading) videoLoading.classList.add('hidden');
+            } catch (error) {
+                if (videoLoading) videoLoading.classList.add('hidden');
+                console.error('Erreur d\'accès à la caméra vidéo:', error);
+                throw error;
+            }
+        }
+
+        // Fermer la caméra
+        function closeCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        // Fermer la caméra vidéo
+        function closeVideoCamera() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            resetRecordingUI();
+        }
+
+        // Changer de caméra (photo)
+        async function switchCamera() {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            closeCamera();
+            await openCamera();
+        }
+
+        // Changer de caméra (vidéo)
+        async function switchVideoCamera() {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            closeVideoCamera();
+            await openVideoCamera();
+        }
+
+        // Capturer une photo
+        function capturePhoto() {
+            const cameraVideo = document.getElementById('camera-video');
+            const cameraCanvas = document.getElementById('camera-canvas');
+            const cameraModal = document.getElementById('camera-modal');
+
+            if (!cameraVideo || !cameraCanvas) return;
+
+            const context = cameraCanvas.getContext('2d');
+
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+
+            context.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+            cameraCanvas.toBlob(function(blob) {
+                if (blob) {
+                    const fileName = `photo_${Date.now()}.jpg`;
+                    const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+                    if (window.selectedImages.length < 10) {
+                        window.selectedImages.push(file);
+                        displayImagePreview(file, window.selectedImages.length - 1);
+                        updateImageInput();
+                        updateMediaDisplay();
+                        validateForm();
+
+                        closeCamera();
+                        cameraModal?.classList.add('hidden');
+
+                        showNotification('Photo capturée avec succès !', 'success');
+                    } else {
+                        showNotification('Maximum 10 images autorisées.', 'error');
+                    }
+                }
+            }, 'image/jpeg', 0.8);
+        }
+
+        // CORRECTION: Démarrer l'enregistrement vidéo en MP4
+        function startRecording() {
+            if (!currentStream) return;
+
+            recordedChunks = [];
+
+            // Configuration pour MP4 avec priorité sur les codecs compatibles
+            const options = [
+                { mimeType: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"' }, // H.264 + AAC (meilleure compatibilité)
+                { mimeType: 'video/mp4; codecs="avc1.42E01E"' },             // H.264 seulement
+                { mimeType: 'video/mp4' },                                    // MP4 générique
+                { mimeType: 'video/webm; codecs="vp9, opus"' },              // WebM VP9 (fallback)
+                { mimeType: 'video/webm; codecs="vp8, opus"' },              // WebM VP8 (fallback)
+                { mimeType: 'video/webm' }                                    // WebM générique (fallback)
+            ];
+
+            let selectedOption = null;
+
+            // Trouver le premier format supporté
+            for (const option of options) {
+                if (MediaRecorder.isTypeSupported(option.mimeType)) {
+                    selectedOption = option;
+                    console.log('Format vidéo sélectionné:', option.mimeType);
+                    break;
                 }
             }
 
-            adjustForSmallScreens();
-            window.addEventListener('resize', adjustForSmallScreens);
-
-            // Variables pour la gestion des médias
-            const imageInput = document.getElementById('images-input');
-            const videoInput = document.getElementById('videos-input');
-            const selectImagesBtn = document.getElementById('select-images-btn');
-            const selectVideosBtn = document.getElementById('select-videos-btn');
-            const imageDropZone = document.getElementById('image-drop-zone');
-            const videoDropZone = document.getElementById('video-drop-zone');
-            const imagePreview = document.getElementById('image-preview');
-            const videoPreview = document.getElementById('video-preview');
-
-            window.selectedImages = [];
-            window.selectedVideos = [];
-
-            // Gestionnaire pour le bouton de sélection d'images
-            if (selectImagesBtn && imageInput) {
-                selectImagesBtn.addEventListener('click', function() {
-                    imageInput.click();
-                });
-
-                imageInput.addEventListener('change', function(e) {
-                    handleImageFiles(Array.from(e.target.files));
-                });
+            // Si aucun format n'est supporté, utiliser le défaut
+            if (!selectedOption) {
+                selectedOption = {};
+                console.warn('Aucun format préféré supporté, utilisation du format par défaut');
             }
 
-            // Gestionnaire pour le bouton de sélection de vidéos
-            if (selectVideosBtn && videoInput) {
-                selectVideosBtn.addEventListener('click', function() {
-                    videoInput.click();
-                });
-
-                videoInput.addEventListener('change', function(e) {
-                    handleVideoFiles(Array.from(e.target.files));
-                });
+            try {
+                mediaRecorder = new MediaRecorder(currentStream, selectedOption);
+            } catch (e) {
+                console.error('Erreur MediaRecorder avec options:', e);
+                // Fallback sans options
+                try {
+                    mediaRecorder = new MediaRecorder(currentStream);
+                    console.log('MediaRecorder créé sans options spécifiques');
+                } catch (e2) {
+                    console.error('Impossible de créer MediaRecorder:', e2);
+                    showNotification('Erreur lors de l\'initialisation de l\'enregistrement', 'error');
+                    return;
+                }
             }
 
-            // Gestionnaire drag & drop pour les images
-            if (imageDropZone) {
-                imageDropZone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('border-[#0077be]', 'bg-blue-50');
-                });
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                    console.log('Chunk vidéo reçu:', event.data.size, 'bytes');
+                }
+            };
 
-                imageDropZone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('border-[#0077be]', 'bg-blue-50');
-                });
+            mediaRecorder.onstop = function() {
+                console.log('Arrêt de l\'enregistrement, chunks collectés:', recordedChunks.length);
 
-                imageDropZone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('border-[#0077be]', 'bg-blue-50');
+                // Déterminer le type MIME et l'extension
+                const mimeType = mediaRecorder.mimeType || selectedOption.mimeType || 'video/mp4';
+                console.log('Type MIME final:', mimeType);
 
-                    const files = Array.from(e.dataTransfer.files).filter(file =>
-                        file.type.startsWith('image/')
-                    );
+                let extension = '.mp4';
+                let finalMimeType = 'video/mp4';
 
-                    if (files.length > 0) {
-                        handleImageFiles(files);
-                    }
-                });
+                // Conversion en MP4 si nécessaire
+                if (mimeType.includes('mp4')) {
+                    extension = '.mp4';
+                    finalMimeType = 'video/mp4';
+                } else if (mimeType.includes('webm')) {
+                    // Pour WebM, on garde le format mais on peut le convertir côté serveur si nécessaire
+                    extension = '.webm';
+                    finalMimeType = mimeType;
+                    console.log('Enregistrement en WebM, conversion MP4 possible côté serveur');
+                }
+
+                // Créer le blob avec le bon type MIME
+                const blob = new Blob(recordedChunks, { type: finalMimeType });
+                console.log('Blob vidéo créé:', blob.size, 'bytes, type:', blob.type);
+
+                const fileName = `video_${Date.now()}${extension}`;
+                const file = new File([blob], fileName, { type: finalMimeType });
+
+                processRecordedVideo(file);
+            };
+
+            mediaRecorder.onerror = function(event) {
+                console.error('Erreur MediaRecorder:', event.error);
+                showNotification('Erreur lors de l\'enregistrement: ' + event.error.message, 'error');
+            };
+
+            // Démarrer l'enregistrement
+            try {
+                mediaRecorder.start(1000); // Collecter les données toutes les secondes
+                recordingStartTime = Date.now();
+                console.log('Enregistrement démarré');
+
+                // Mettre à jour l'interface
+                const startRecordingBtn = document.getElementById('start-recording-btn');
+                const stopRecordingBtn = document.getElementById('stop-recording-btn');
+                const recordingIndicator = document.getElementById('recording-indicator');
+
+                startRecordingBtn?.classList.add('hidden');
+                stopRecordingBtn?.classList.remove('hidden');
+                recordingIndicator?.classList.remove('hidden');
+
+                recordingInterval = setInterval(updateRecordingTime, 1000);
+
+                showNotification('Enregistrement vidéo démarré', 'success');
+            } catch (e) {
+                console.error('Erreur lors du démarrage:', e);
+                showNotification('Impossible de démarrer l\'enregistrement', 'error');
             }
+        }
 
-            // Gestionnaire drag & drop pour les vidéos
-            if (videoDropZone) {
-                videoDropZone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('border-[#0077be]', 'bg-blue-50');
-                });
+        // Traiter la vidéo enregistrée
+        function processRecordedVideo(file) {
+            console.log('Traitement de la vidéo:', file.name, file.size, 'bytes');
 
-                videoDropZone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('border-[#0077be]', 'bg-blue-50');
-                });
+            if (window.selectedVideos.length < 5) {
+                // Vérifier la taille (limite à 50MB pour les vidéos)
+                const maxSize = 50 * 1024 * 1024; // 50MB
+                if (file.size > maxSize) {
+                    showNotification('Vidéo trop volumineuse (max 50MB). Réduisez la durée d\'enregistrement.', 'error');
+                    return;
+                }
 
-                videoDropZone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('border-[#0077be]', 'bg-blue-50');
-
-                    const files = Array.from(e.dataTransfer.files).filter(file =>
-                        file.type.startsWith('video/')
-                    );
-
-                    if (files.length > 0) {
-                        handleVideoFiles(files);
-                    }
-                });
-            }
-
-            // Fonction pour gérer les fichiers images
-            function handleImageFiles(files) {
-                const maxImages = 10;
-                const maxSize = 10 * 1024 * 1024; // 10MB
-
-                files.forEach(file => {
-                    // Vérifier le nombre maximum
-                    if (window.selectedImages.length >= maxImages) {
-                        alert(`Maximum ${maxImages} images autorisées.`);
-                        return;
-                    }
-
-                    // Vérifier la taille (10MB max)
-                    if (file.size > maxSize) {
-                        alert(`L'image "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
-                        return;
-                    }
-
-                    // Vérifier le type
-                    if (!file.type.startsWith('image/')) {
-                        alert(`Le fichier "${file.name}" n'est pas une image valide.`);
-                        return;
-                    }
-
-                    window.selectedImages.push(file);
-                    displayImagePreview(file, window.selectedImages.length - 1);
-                });
-
-                updateImageInput();
-                toggleImagePreview();
-                validateForm(); // Revalidate après ajout d'images
-            }
-
-            // Fonction pour gérer les fichiers vidéos
-            function handleVideoFiles(files) {
-                const maxVideos = 5;
-                const maxSize = 10 * 1024 * 1024; // 10MB
-
-                files.forEach(file => {
-                    // Vérifier le nombre maximum
-                    if (window.selectedVideos.length >= maxVideos) {
-                        alert(`Maximum ${maxVideos} vidéos autorisées.`);
-                        return;
-                    }
-
-                    // Vérifier la taille (10MB max)
-                    if (file.size > maxSize) {
-                        alert(`La vidéo "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
-                        return;
-                    }
-
-                    // Vérifier le type
-                    if (!file.type.startsWith('video/')) {
-                        alert(`Le fichier "${file.name}" n'est pas une vidéo valide.`);
-                        return;
-                    }
-
-                    window.selectedVideos.push(file);
-                    displayVideoPreview(file, window.selectedVideos.length - 1);
-                });
-
+                window.selectedVideos.push(file);
+                displayVideoPreview(file, window.selectedVideos.length - 1);
                 updateVideoInput();
-                toggleVideoPreview();
-                validateForm(); // Revalidate après ajout de vidéos
-            }
+                updateMediaDisplay();
+                validateForm();
 
-            // Afficher la prévisualisation d'une image
-            function displayImagePreview(file, index) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'relative group';
-                    previewItem.innerHTML = `
-                <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
-                    <img src="${e.target.result}" alt="Prévisualisation" class="w-full h-full object-cover">
-                </div>
-                <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeImage(${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                    ${(file.size / 1024 / 1024).toFixed(1)}MB
-                </div>
-            `;
+                closeVideoCamera();
+                const videoModal = document.getElementById('video-modal');
+                videoModal?.classList.add('hidden');
+
+                showNotification('Vidéo enregistrée avec succès !', 'success');
+                console.log('Vidéo ajoutée aux sélections');
+            } else {
+                showNotification('Maximum 5 vidéos autorisées.', 'error');
+            }
+        }
+
+        // Arrêter l'enregistrement vidéo
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            resetRecordingUI();
+        }
+
+        // Réinitialiser l'interface d'enregistrement
+        function resetRecordingUI() {
+            const startRecordingBtn = document.getElementById('start-recording-btn');
+            const stopRecordingBtn = document.getElementById('stop-recording-btn');
+            const recordingIndicator = document.getElementById('recording-indicator');
+
+            startRecordingBtn?.classList.remove('hidden');
+            stopRecordingBtn?.classList.add('hidden');
+            recordingIndicator?.classList.add('hidden');
+
+            if (recordingInterval) {
+                clearInterval(recordingInterval);
+                recordingInterval = null;
+            }
+            recordingStartTime = null;
+        }
+
+        // Mettre à jour le temps d'enregistrement
+        function updateRecordingTime() {
+            const recordingTime = document.getElementById('recording-time');
+            if (recordingStartTime && recordingTime) {
+                const elapsed = Date.now() - recordingStartTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                recordingTime.textContent = timeString;
+            }
+        }
+
+        // Gestion des fichiers images
+        function handleImageFiles(files) {
+            const maxImages = 10;
+            const maxSize = 10 * 1024 * 1024; // 10MB
+
+            files.forEach(file => {
+                if (window.selectedImages.length >= maxImages) {
+                    showNotification(`Maximum ${maxImages} images autorisées.`, 'error');
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    showNotification(`L'image "${file.name}" est trop volumineuse. Taille maximale : 10MB`, 'error');
+                    return;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    showNotification(`Le fichier "${file.name}" n'est pas une image valide.`, 'error');
+                    return;
+                }
+
+                window.selectedImages.push(file);
+                displayImagePreview(file, window.selectedImages.length - 1);
+            });
+
+            updateImageInput();
+            updateMediaDisplay();
+            validateForm();
+        }
+
+        // Gestion des fichiers vidéos
+        function handleVideoFiles(files) {
+            const maxVideos = 5;
+            const maxSize = 50 * 1024 * 1024; // 50MB pour les vidéos
+
+            files.forEach(file => {
+                if (window.selectedVideos.length >= maxVideos) {
+                    showNotification(`Maximum ${maxVideos} vidéos autorisées.`, 'error');
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    showNotification(`La vidéo "${file.name}" est trop volumineuse. Taille maximale : 50MB`, 'error');
+                    return;
+                }
+
+                if (!file.type.startsWith('video/')) {
+                    showNotification(`Le fichier "${file.name}" n'est pas une vidéo valide.`, 'error');
+                    return;
+                }
+
+                window.selectedVideos.push(file);
+                displayVideoPreview(file, window.selectedVideos.length - 1);
+            });
+
+            updateVideoInput();
+            updateMediaDisplay();
+            validateForm();
+        }
+
+        // Afficher la prévisualisation d'une image
+        function displayImagePreview(file, index) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'media-preview-item relative group';
+                previewItem.innerHTML = `
+                    <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                        <img src="${e.target.result}" alt="Prévisualisation" class="w-full h-full object-cover">
+                    </div>
+                    <div class="overlay"></div>
+                    <button type="button" class="delete-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors" onclick="removeImage(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        ${(file.size / 1024 / 1024).toFixed(1)}MB
+                    </div>
+                `;
+                const imagePreview = document.getElementById('image-preview');
+                if (imagePreview) {
                     imagePreview.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
-            }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
 
-            // Afficher la prévisualisation d'une vidéo
-            function displayVideoPreview(file, index) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'relative group';
-                    previewItem.innerHTML = `
-                <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
-                    <video src="${e.target.result}" class="w-full h-full object-cover" controls></video>
-                </div>
-                <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeVideo(${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                    ${(file.size / 1024 / 1024).toFixed(1)}MB
-                </div>
-            `;
+        // Afficher la prévisualisation d'une vidéo avec support MP4
+        function displayVideoPreview(file, index) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'media-preview-item relative group';
+
+                // Déterminer l'icône selon le format
+                const isMP4 = file.type.includes('mp4');
+                const formatIcon = isMP4 ? 'fas fa-film' : 'fas fa-video';
+                const formatLabel = isMP4 ? 'MP4' : file.type.split('/')[1].toUpperCase();
+
+                previewItem.innerHTML = `
+                    <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                        <video src="${e.target.result}" class="w-full h-full object-cover" controls preload="metadata"></video>
+                    </div>
+                    <div class="overlay"></div>
+                    <button type="button" class="delete-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors" onclick="removeVideo(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center">
+                        <i class="${formatIcon} mr-1"></i>
+                        ${formatLabel} • ${(file.size / 1024 / 1024).toFixed(1)}MB
+                    </div>
+                    <div class="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                        <i class="fas fa-video mr-1"></i>
+                        Enregistré
+                    </div>
+                `;
+                const videoPreview = document.getElementById('video-preview');
+                if (videoPreview) {
                     videoPreview.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Mettre à jour l'affichage des médias
+        function updateMediaDisplay() {
+            const imagesSection = document.getElementById('images-section');
+            const videosSection = document.getElementById('videos-section');
+            const imagesCount = document.getElementById('images-count');
+            const videosCount = document.getElementById('videos-count');
+
+            // Mise à jour du compteur et affichage des images
+            if (imagesCount) {
+                imagesCount.textContent = window.selectedImages.length;
+                imagesCount.className = 'media-counter';
+                if (window.selectedImages.length >= 8) {
+                    imagesCount.classList.add('warning');
+                }
+                if (window.selectedImages.length >= 10) {
+                    imagesCount.classList.add('danger');
+                    imagesCount.classList.remove('warning');
+                }
             }
 
-            // Mettre à jour l'input des images
-            function updateImageInput() {
+            if (imagesSection) {
+                if (window.selectedImages.length > 0) {
+                    imagesSection.classList.remove('hidden');
+                } else {
+                    imagesSection.classList.add('hidden');
+                }
+            }
+
+            // Mise à jour du compteur et affichage des vidéos
+            if (videosCount) {
+                videosCount.textContent = window.selectedVideos.length;
+                videosCount.className = 'media-counter';
+                if (window.selectedVideos.length >= 4) {
+                    videosCount.classList.add('warning');
+                }
+                if (window.selectedVideos.length >= 5) {
+                    videosCount.classList.add('danger');
+                    videosCount.classList.remove('warning');
+                }
+            }
+
+            if (videosSection) {
+                if (window.selectedVideos.length > 0) {
+                    videosSection.classList.remove('hidden');
+                } else {
+                    videosSection.classList.add('hidden');
+                }
+            }
+        }
+
+        // Mettre à jour l'input des images
+        function updateImageInput() {
+            const imageInput = document.getElementById('images-input');
+            if (imageInput) {
                 const dt = new DataTransfer();
                 window.selectedImages.forEach(file => dt.items.add(file));
                 imageInput.files = dt.files;
             }
+        }
 
-            // Mettre à jour l'input des vidéos
-            function updateVideoInput() {
+        // Mettre à jour l'input des vidéos
+        function updateVideoInput() {
+            const videoInput = document.getElementById('videos-input');
+            if (videoInput) {
                 const dt = new DataTransfer();
                 window.selectedVideos.forEach(file => dt.items.add(file));
                 videoInput.files = dt.files;
             }
+        }
 
-            // Afficher/masquer la prévisualisation des images
-            function toggleImagePreview() {
-                if (window.selectedImages.length > 0) {
-                    imagePreview.classList.remove('hidden');
-                } else {
-                    imagePreview.classList.add('hidden');
-                }
-            }
-
-            // Afficher/masquer la prévisualisation des vidéos
-            function toggleVideoPreview() {
-                if (window.selectedVideos.length > 0) {
-                    videoPreview.classList.remove('hidden');
-                } else {
-                    videoPreview.classList.add('hidden');
-                }
-            }
-
-            // Fonctions globales pour la suppression (accessibles depuis le HTML)
-            window.removeImage = function(index) {
-                window.selectedImages.splice(index, 1);
+        // Fonctions globales pour la suppression (accessibles depuis le HTML)
+        window.removeImage = function(index) {
+            window.selectedImages.splice(index, 1);
+            const imagePreview = document.getElementById('image-preview');
+            if (imagePreview) {
                 imagePreview.innerHTML = '';
                 window.selectedImages.forEach((file, newIndex) => {
                     displayImagePreview(file, newIndex);
                 });
-                updateImageInput();
-                toggleImagePreview();
-                validateForm(); // Revalidate après suppression
-            };
+            }
+            updateImageInput();
+            updateMediaDisplay();
+            validateForm();
+        };
 
-            window.removeVideo = function(index) {
-                window.selectedVideos.splice(index, 1);
+        window.removeVideo = function(index) {
+            window.selectedVideos.splice(index, 1);
+            const videoPreview = document.getElementById('video-preview');
+            if (videoPreview) {
                 videoPreview.innerHTML = '';
                 window.selectedVideos.forEach((file, newIndex) => {
                     displayVideoPreview(file, newIndex);
                 });
-                updateVideoInput();
-                toggleVideoPreview();
-                validateForm(); // Revalidate après suppression
-            };
-        });
+            }
+            updateVideoInput();
+            updateMediaDisplay();
+            validateForm();
+        };
+
+        // Fonction pour afficher des notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                    <button type="button" class="ml-4 text-white/80 hover:text-white" onclick="this.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animation d'entrée
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            // Suppression automatique
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Connecter le bouton "Voir la liste" à l'onglet utilisateurs sur mobile
+        const showUsersTabBtn = document.getElementById('show-users-tab');
+        const tabUsersBtn = document.getElementById('tab-users-btn');
+        if (showUsersTabBtn && tabUsersBtn) {
+            showUsersTabBtn.addEventListener('click', function() {
+                activateTab('users');
+            });
+        }
+
+        // Initialisation finale
+        function finalizeInitialization() {
+            // Mise à jour initiale de l'affichage des médias
+            updateMediaDisplay();
+
+            // Validation initiale du formulaire
+            validateForm();
+
+            // Affichage d'un message de bienvenue si la caméra est disponible
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                console.log('📷 Caméra disponible - Fonctionnalités photo/vidéo activées');
+            } else {
+                console.warn('📷 Caméra non disponible - Seule l\'upload de fichiers est possible');
+            }
+        }
+
+        // Appeler l'initialisation finale
+        setTimeout(finalizeInitialization, 100);
     </script>
+
 </x-app-layout>

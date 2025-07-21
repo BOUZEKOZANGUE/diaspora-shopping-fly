@@ -76,7 +76,7 @@
     </div>
 </div>
 
-<!-- Revenue Card -->
+{{-- <!-- Revenue Card -->
 <div class="bg-white rounded-xl shadow-md p-4 border border-blue-100">
     <div class="flex items-center justify-between">
         <div>
@@ -102,4 +102,4 @@
             <span class="text-gray-400 text-sm ml-2">vs hier</span>
         </div>
     </div>
-</div>
+</div> --}}

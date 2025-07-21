@@ -21,13 +21,13 @@
          class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
 
         <!-- Header Modern avec Glass Effect -->
-        <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-2xl border-b border-gray-200/60 shadow-sm">
+        <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-2xl border-b border-gray-200/60 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16 sm:h-20">
                     <!-- Bouton retour et titre -->
                     <div class="flex items-center space-x-4">
                         <a href="{{ route('dashboard') }}"
-                           class="group flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                           class="group flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#0077BE] to-[#0077BE] hover:from-[#0077BE] hover:to--[#0077BE] text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                             </svg>
@@ -53,10 +53,10 @@
             <!-- Hero Section avec numéro de suivi -->
             <div class="text-center mb-8 sm:mb-12">
                 <div class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-full mb-4 border border-blue-200/60">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-[#0077BE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="text-sm font-medium text-blue-700">Suivi en temps réel</span>
+                    <span class="text-sm font-medium text-[#0077BE]">Suivi en temps réel</span>
                 </div>
 
                 <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Votre Expédition</h2>
@@ -67,7 +67,7 @@
                     <p class="text-xs sm:text-sm font-medium text-gray-600 mb-2">Numéro de suivi</p>
                     <div class="flex items-center space-x-3">
                         <p class="text-xl sm:text-2xl font-mono font-bold text-gray-900 tracking-wider">{{ $package->tracking_number }}</p>
-                        <svg class="w-5 h-5 text-gray-400 hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-gray-400 hover:text-[#0077BE] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                         </svg>
                     </div>
@@ -102,7 +102,7 @@
                             @if($package->images && count($package->images) > 0)
                             <div>
                                 <h4 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-[#0077BE] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
                                     Photos ({{ count($package->images) }})

@@ -24,7 +24,7 @@
                 <span class="hero-word" data-delay="0">Transport</span>
                 <span class="hero-word" data-delay="500">Express</span>
                 <br>
-                <span class="hero-accent" data-delay="1000">Europe ⟷ Cameroun</span>
+                <span class="hero-accent" data-delay="1000">Europe <i class="fa-solid fa-arrow-right-arrow-left text-white"></i> Cameroun</span>
             </h1>
 
             <!-- Description avec animation wave -->

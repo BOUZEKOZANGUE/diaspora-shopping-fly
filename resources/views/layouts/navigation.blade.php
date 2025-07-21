@@ -145,13 +145,13 @@
                         </span>
                         <span class="text-sm font-medium">Services</span>
                     </a>
-                    <a href="#"
+                    {{-- <a href="#"
                         class="group flex items-center space-x-2 text-[#0077be] hover:text-[#005c91] transition-all duration-300">
                         <span class="w-8 h-8 flex items-center justify-center rounded-full bg-[#0077be]/5 group-hover:bg-[#0077be]/10">
                             <i class="fas fa-info-circle text-sm"></i>
                         </span>
                         <span class="text-sm font-medium">À propos</span>
-                    </a>
+                    </a> --}}
                     <a href="#"
                         class="group flex items-center space-x-2 text-[#0077be] hover:text-[#005c91] transition-all duration-300">
                         <span class="w-8 h-8 flex items-center justify-center rounded-full bg-[#0077be]/5 group-hover:bg-[#0077be]/10">
@@ -178,11 +178,11 @@
                             <!-- User Dropdown -->
                             <div x-show="userMenu" x-transition
                                 class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#0077be]/10 py-1 z-50">
-                                <a href="{{ route('profile.edit') }}"
+                                {{-- <a href="{{ route('profile.edit') }}"
                                     class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#0077be]/5">
                                     <i class="fas fa-user-cog w-5 text-[#0077be]"></i>
                                     <span class="ml-2">Profile</span>
-                                </a>
+                                </a> --}}
                                 <form method="POST" action="{{ route('logout') }}" class="border-t border-[#0077be]/10">
                                     @csrf
                                     <button type="submit"
@@ -301,13 +301,13 @@
                         </span>
                         <span class="font-medium">Services</span>
                     </a>
-                    <a href="#" @click="mobileMenu = false"
+                    {{-- <a href="#" @click="mobileMenu = false"
                         class="flex items-center space-x-3 px-4 py-3 rounded-xl text-[#0077be] hover:bg-[#0077be]/5 transition-colors duration-300">
                         <span class="w-8 h-8 flex items-center justify-center rounded-full bg-[#0077be]/10">
                             <i class="fas fa-info-circle"></i>
                         </span>
                         <span class="font-medium">À propos</span>
-                    </a>
+                    </a> --}}
                     <a href="#" @click="mobileMenu = false"
                         class="flex items-center space-x-3 px-4 py-3 rounded-xl text-[#0077be] hover:bg-[#0077be]/5 transition-colors duration-300">
                         <span class="w-8 h-8 flex items-center justify-center rounded-full bg-[#0077be]/10">
@@ -334,11 +334,11 @@
                         </div>
 
                         <!-- User Actions -->
-                        <a href="{{ route('profile.edit') }}"
+                        {{-- <a href="{{ route('profile.edit') }}"
                             class="flex items-center space-x-3 px-4 py-3 rounded-xl text-[#0077be] hover:bg-[#0077be]/5">
                             <i class="fas fa-user-cog w-5"></i>
                             <span>Profile</span>
-                        </a>
+                        </a> --}}
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"

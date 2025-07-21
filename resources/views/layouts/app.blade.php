@@ -1,18 +1,185 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" itemscope itemtype="https://schema.org/Organization">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>DSF - Diaspora Shopping & Fly</title>
+    <!-- SEO Meta Tags Optimisés -->
+    <title>DSF - Transport International de Colis en Sécurité</title>
+    <meta name="description" content="DSF propose un réseau de points relais pour le transport sécurisé de colis entre la Belgique, France et Cameroun. Dépôt et retrait de colis avec suivi en temps réel.">
+    <meta name="keywords" content="transport international colis, points relais DSF, transport sécurisé, dépôt retrait colis, Belgique France Cameroun, suivi colis">
+    <meta name="author" content="DSF - Diaspora Shopping & Fly">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://group-dsf.com/">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DSF - Transport International de Colis en Sécurité">
+    <meta property="og:description" content="Réseau de points relais pour transport sécurisé de colis entre l'Europe et l'Afrique. Points de dépôt et retrait avec suivi temps réel.">
+    <meta property="og:url" content="https://group-dsf.com/">
+    <meta property="og:site_name" content="DSF Transport">
+    <meta property="og:image" content="https://group-dsf.com/images/dsf-og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="DSF - Transport international de colis sécurisé">
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DSF - Transport International de Colis en Sécurité">
+    <meta name="twitter:description" content="Réseau de points relais pour transport sécurisé de colis entre l'Europe et l'Afrique.">
+    <meta name="twitter:image" content="https://group-dsf.com/images/dsf-twitter-card.jpg">
+    <meta name="twitter:image:alt" content="DSF - Transport sécurisé de colis" de vos colis.">
+    <meta name="twitter:image" content="https://group-dsf.com/images/dsf-twitter-card.jpg">
+    <meta name="twitter:image:alt" content="DSF Transport - Service international">
+
+    <!-- Mobile App Banners -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DSF Transport">
+    <meta name="theme-color" content="#0077be">
+    <meta name="msapplication-navbutton-color" content="#0077be">
+
+    <!-- Favicon et Icons -->
     <link rel="icon" href="{{ asset('images/dsf.svg') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+
+    <!-- Alternate Languages -->
+    <link rel="alternate" hreflang="fr" href="https://group-dsf.com/">
+    <link rel="alternate" hreflang="en" href="https://group-dsf.com/en/">
+    <link rel="alternate" hreflang="nl" href="https://group-dsf.com/nl/">
+    <link rel="alternate" hreflang="x-default" href="https://group-dsf.com/">
 
     <!-- Preload critical resources -->
     <link rel="preload" href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" as="style">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://fonts.bunny.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://group-dsf.com" crossorigin>
+
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "DSF - Diaspora Shopping & Fly",
+        "alternateName": "DSF Transport",
+        "url": "https://group-dsf.com",
+        "logo": "https://group-dsf.com/images/dsf-logo.png",
+        "description": "Service de transport international entre la Belgique, la France et le Cameroun avec suivi en temps réel",
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "DSF - Diaspora Shopping & Fly",
+        "alternateName": "DSF Transport",
+        "url": "https://group-dsf.com",
+        "logo": "https://group-dsf.com/images/dsf-logo.png",
+        "description": "Service de transport international de colis avec réseau de points relais entre la Belgique, France et Cameroun",
+        "foundingDate": "2021",
+        "contactPoint": [
+            {
+                "@type": "ContactPoint",
+                "telephone": "+32-465-616-645",
+                "contactType": "customer service",
+                "areaServed": "BE",
+                "availableLanguage": ["French", "Dutch"]
+            },
+            {
+                "@type": "ContactPoint",
+                "telephone": "+33-667-529-091",
+                "contactType": "customer service",
+                "areaServed": "FR",
+                "availableLanguage": "French"
+            },
+            {
+                "@type": "ContactPoint",
+                "telephone": "+237-939-960-22",
+                "contactType": "customer service",
+                "areaServed": "CM",
+                "availableLanguage": ["French", "English"]
+            }
+        ],
+        "address": [
+            {
+                "@type": "PostalAddress",
+                "streetAddress": "Rue du Tilleul 91",
+                "addressLocality": "Evere",
+                "addressRegion": "Brussels",
+                "postalCode": "1140",
+                "addressCountry": "BE"
+            },
+            {
+                "@type": "PostalAddress",
+                "streetAddress": "58b rue henri Poincaré",
+                "addressLocality": "Asnières-sur-Seine",
+                "addressRegion": "Île-de-France",
+                "postalCode": "92600",
+                "addressCountry": "FR"
+            },
+            {
+                "@type": "PostalAddress",
+                "streetAddress": "Logpom, Montana city",
+                "addressLocality": "Douala",
+                "addressRegion": "Littoral",
+                "addressCountry": "CM"
+            }
+        ],
+        "sameAs": [
+            "https://www.facebook.com/dsftransport",
+            "https://www.instagram.com/dsf_transport",
+            "https://wa.me/32465616645"
+        ]
+    }
+    </script>
+
+    <!-- Structured Data - Service -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "Transport International de Colis",
+        "description": "Service de transport de colis avec points relais entre l'Europe et l'Afrique",
+        "provider": {
+            "@type": "Organization",
+            "name": "DSF "
+        },
+        "serviceType": "Parcel Service",
+        "areaServed": ["Belgium", "France", "Cameroon"],
+        "offers": {
+            "@type": "Offer",
+            "description": "Transport sécurisé de colis avec suivi",
+            "availability": "https://schema.org/InStock"
+        }
+    }
+    </script>
+
+    <!-- Google Analytics (Replace with your tracking ID) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_TRACKING_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_TRACKING_ID', {
+            page_title: 'DSF  - Accueil',
+            page_location: 'https://group-dsf.com/',
+            send_page_view: true
+        });
+    </script>
 
     <!-- Critical CSS inline - Optimized for fast loading -->
     <style>
@@ -231,6 +398,30 @@
             transition: width 0.2s ease-out;
             will-change: width;
         }
+
+        /* Screen reader only class */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .focus\:not-sr-only:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            padding: 0.5rem 1rem;
+            margin: 0;
+            overflow: visible;
+            clip: auto;
+            white-space: normal;
+        }
     </style>
 
     <!-- Deferred CSS loading -->
@@ -249,41 +440,46 @@
     @vite(['resources/css/app.css', 'resources/css/packages.css', 'resources/js/app.js', 'resources/js/packages.js'])
 </head>
 
-<body class="font-sans antialiased">
+<body class="font-sans antialiased" itemscope itemtype="https://schema.org/WebPage">
+    <!-- Skip Navigation (Accessibility) -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded z-50">
+        Aller au contenu principal
+    </a>
+
     <!-- Page Loader -->
-    <div id="pageLoader" class="page-loader">
+    <div id="pageLoader" class="page-loader" aria-label="Chargement de la page">
         <div class="loader-container">
             <!-- Cercles orbitaux -->
-            <div class="orbit-circle"></div>
-            <div class="orbit-circle"></div>
-            <div class="orbit-circle"></div>
+            <div class="orbit-circle" aria-hidden="true"></div>
+            <div class="orbit-circle" aria-hidden="true"></div>
+            <div class="orbit-circle" aria-hidden="true"></div>
 
             <!-- Particules flottantes -->
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
+            <div class="particle" aria-hidden="true"></div>
+            <div class="particle" aria-hidden="true"></div>
+            <div class="particle" aria-hidden="true"></div>
+            <div class="particle" aria-hidden="true"></div>
+            <div class="particle" aria-hidden="true"></div>
+            <div class="particle" aria-hidden="true"></div>
 
             <!-- Spinners -->
-            <div class="main-spinner"></div>
-            <div class="secondary-spinner"></div>
+            <div class="main-spinner" aria-hidden="true"></div>
+            <div class="secondary-spinner" aria-hidden="true"></div>
 
             <!-- Logo central -->
             <div class="logo-container">
-                <div class="dsf-logo">DSF</div>
+                <div class="dsf-logo" aria-label="Logo DSF">DSF</div>
             </div>
 
             <!-- Texte de chargement optimisé -->
-            <div class="loading-text">
+            <div class="loading-text" role="status" aria-live="polite">
                 Chargement...
             </div>
         </div>
     </div>
 
     <!-- Progress Bar -->
-    <div class="progress-container">
+    <div class="progress-container" role="progressbar" aria-label="Progression de lecture">
         <div id="progressBar" class="progress-bar"></div>
     </div>
 
@@ -292,7 +488,7 @@
 
         <!-- Page Heading -->
         @isset($header)
-            <header class="bg-white shadow">
+            <header class="bg-white shadow" role="banner">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
@@ -300,18 +496,18 @@
         @endisset
 
         <!-- Page Content -->
-        <main>
+        <main id="main-content" role="main">
             @include('layouts.flash-messages')
             {{ $slot }}
         </main>
 
         <!-- Back to Top Button -->
-        <button id="backToTop" class="back-to-top" aria-label="Retour en haut de la page">
+        <button id="backToTop" class="back-to-top" aria-label="Retour en haut de la page" title="Retour en haut">
             <div class="button-content">
-                <span class="arrow">↑</span>
+                <span class="arrow" aria-hidden="true">↑</span>
                 <span class="text">Haut</span>
             </div>
-            <div class="ripple"></div>
+            <div class="ripple" aria-hidden="true"></div>
         </button>
 
         @include('layouts.footer')
@@ -493,6 +689,25 @@
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: "smooth" });
             }, { passive: false });
+        });
+
+        // SEO Performance Tracking
+        window.addEventListener('load', function() {
+            // Track Core Web Vitals for SEO
+            if ('PerformanceObserver' in window) {
+                // Largest Contentful Paint
+                new PerformanceObserver((entryList) => {
+                    for (const entry of entryList.getEntries()) {
+                        if (typeof gtag !== 'undefined') {
+                            gtag('event', 'LCP', {
+                                event_category: 'Web Vitals',
+                                value: Math.round(entry.startTime),
+                                non_interaction: true
+                            });
+                        }
+                    }
+                }).observe({entryTypes: ['largest-contentful-paint']});
+            }
         });
     </script>
 </body>

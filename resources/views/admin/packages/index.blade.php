@@ -50,10 +50,10 @@
 
                     <!-- Actions principales -->
                     <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full xl:w-auto">
-                        <div class="relative flex-grow xl:flex-grow-0 min-w-0 xl:min-w-80">
+                        <div class="relative flex-grow xl:flex-grow-0 min-w-0 ">
                             @include('admin.packages.partials.search-bar')
                         </div>
-                        <div class="flex items-center space-x-3 flex-shrink-0">
+                        <div class="flex items-center gap-3 flex-shrink-0 max-sm:flex-col">
                             @include('admin.packages.partials.action-buttons')
                         </div>
                     </div>
@@ -113,9 +113,9 @@
                                 <option value="">Choisir une action...</option>
                                 <option value="status">🔄 Changer le statut</option>
                                 <option value="delete">🗑️ Supprimer</option>
-                                <option value="export">📊 Exporter</option>
-                                <option value="print">🖨️ Imprimer étiquettes</option>
-                                <option value="assign">👤 Assigner à un utilisateur</option>
+                                {{-- <option value="export">📊 Exporter</option>
+                                <option value="print">🖨️ Imprimer étiquettes</option>--}}
+                                {{-- <option value="assign">👤 Assigner à un utilisateur</option> --}}
                             </select>
                         </div>
 

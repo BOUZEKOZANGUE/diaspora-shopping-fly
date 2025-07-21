@@ -135,14 +135,23 @@ class ShipmentController extends Controller
     }
 
     /**
-     * Enregistre un nouveau client et son colis
+     * ✅ MÉTHODE CORRIGÉE : Enregistre un nouveau client et son colis
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'sender_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'notification_email' => 'nullable|email', // ✅ Email de notification optionnel
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'unique:users,phone' // ✅ AJOUTÉ : Vérification unicité téléphone
+            ],
+            'notification_email' => [
+                'nullable',
+                'email',
+                'unique:users,email' // ✅ AJOUTÉ : Vérification unicité email de notification
+            ],
             'weight' => 'required|numeric|min:0.1',
             'price' => 'required|numeric|min:0',
             'country' => 'required|string|in:France,Cameroun,Belgique',
@@ -151,18 +160,37 @@ class ShipmentController extends Controller
             'description_colis' => 'required|string',
             'recipient_name' => 'required|string|max:255',
             'recipient_phone' => 'required|string|max:20',
-            'recipient_email' => 'nullable|email', // Email destinataire optionnel
+            'recipient_email' => 'nullable|email',
             'images' => 'nullable|array|max:10',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max par image
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
             'videos' => 'nullable|array|max:5',
-            'videos.*' => 'mimes:mp4,mov,avi,wmv|max:10240', // 10MB max par vidéo
+            'videos.*' => 'mimes:mp4,mov,avi,wmv|max:10240',
         ], [
+            // ✅ Messages d'erreur personnalisés
+            'phone.unique' => 'Ce numéro de téléphone est déjà utilisé par un autre client. Veuillez utiliser le formulaire "Client existant".',
+            'notification_email.unique' => 'Cet email est déjà utilisé par un autre client. Veuillez utiliser le formulaire "Client existant".',
             'images.*.image' => 'Chaque fichier image doit être un fichier image valide.',
             'images.*.mimes' => 'Les images doivent être au format JPEG, PNG, JPG ou GIF.',
             'images.*.max' => 'Chaque image ne doit pas dépasser 10MB.',
             'videos.*.mimes' => 'Les vidéos doivent être au format MP4, MOV, AVI ou WMV.',
             'videos.*.max' => 'Chaque vidéo ne doit pas dépasser 10MB.',
         ]);
+
+        // ✅ VÉRIFICATION ADDITIONNELLE : Rechercher s'il y a un utilisateur similaire
+        $duplicateCheck = $this->checkExistingUser(
+            $validated['sender_name'],
+            $validated['phone'],
+            $validated['notification_email'] ?? null
+        );
+
+        if ($duplicateCheck['exists']) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'duplicate_user' => $duplicateCheck['message'] . ' Utilisez plutôt le formulaire "Client existant".'
+                ])
+                ->with('suggestion_user', $duplicateCheck['user'] ?? null);
+        }
 
         // Validation : au moins une image ou une vidéo doit être fournie
         if (empty($request->file('images')) && empty($request->file('videos'))) {
@@ -209,7 +237,7 @@ class ShipmentController extends Controller
                     'email' => $dsfEmail,
                     'password' => $defaultPassword,
                     'phone' => $user->phone,
-                    'notification_email' => $validated['notification_email'] ?? null // ✅ Email de notification
+                    'notification_email' => $validated['notification_email'] ?? null
                 ],
                 'recipient' => [
                     'name' => $package->recipient->name,
@@ -249,12 +277,12 @@ class ShipmentController extends Controller
     }
 
     /**
-     * Enregistre un colis pour un client existant
+     * ✅ MÉTHODE CORRIGÉE : Enregistre un colis pour un client existant
      */
     public function storeForExisting(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id', // ✅ AJOUTÉ : Validation obligatoire user_id
             'weight' => 'required|numeric|min:0.1',
             'price' => 'required|numeric|min:0',
             'country' => 'required|string|in:France,Cameroun,Belgique',
@@ -263,12 +291,15 @@ class ShipmentController extends Controller
             'description_colis' => 'required|string',
             'recipient_name' => 'required|string|max:255',
             'recipient_phone' => 'required|string|max:20',
-            'recipient_email' => 'nullable|email', // Email destinataire optionnel
+            'recipient_email' => 'nullable|email',
+            'notification_email' => 'nullable|email', // ✅ AJOUTÉ : Email de notification optionnel
             'images' => 'nullable|array|max:10',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max par image
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
             'videos' => 'nullable|array|max:5',
-            'videos.*' => 'mimes:mp4,mov,avi,wmv|max:10240', // 10MB max par vidéo
+            'videos.*' => 'mimes:mp4,mov,avi,wmv|max:10240',
         ], [
+            'user_id.required' => 'Veuillez sélectionner un client existant.',
+            'user_id.exists' => 'Le client sélectionné n\'existe pas.',
             'images.*.image' => 'Chaque fichier image doit être un fichier image valide.',
             'images.*.mimes' => 'Les images doivent être au format JPEG, PNG, JPG ou GIF.',
             'images.*.max' => 'Chaque image ne doit pas dépasser 10MB.',
@@ -311,7 +342,8 @@ class ShipmentController extends Controller
                 'user' => [
                     'name' => $user->name,
                     'email' => $user->email,
-                    'phone' => $user->phone
+                    'phone' => $user->phone,
+                    'notification_email' => $validated['notification_email'] ?? null // ✅ AJOUTÉ
                 ],
                 'recipient' => [
                     'name' => $package->recipient->name,
@@ -1111,6 +1143,50 @@ class ShipmentController extends Controller
     }
 
     /**
+     * ✅ NOUVELLE MÉTHODE : Vérifie s'il existe déjà un utilisateur avec ce téléphone ou email similaire
+     */
+    private function checkExistingUser($senderName, $phone, $notificationEmail = null)
+    {
+        // Recherche par téléphone (exact)
+        $existingByPhone = User::where('phone', $phone)->first();
+
+        if ($existingByPhone) {
+            return [
+                'exists' => true,
+                'user' => $existingByPhone,
+                'reason' => 'phone',
+                'message' => "Un client existe déjà avec ce numéro : {$existingByPhone->name} ({$existingByPhone->email})"
+            ];
+        }
+
+        // Recherche par email de notification si fourni
+        if ($notificationEmail) {
+            $existingByNotificationEmail = User::where('email', $notificationEmail)->first();
+
+            if ($existingByNotificationEmail) {
+                return [
+                    'exists' => true,
+                    'user' => $existingByNotificationEmail,
+                    'reason' => 'notification_email',
+                    'message' => "L'email de notification correspond à un client existant : {$existingByNotificationEmail->name}"
+                ];
+            }
+        }
+
+        // Recherche par nom similaire (optionnel - pour avertir)
+        $similarNames = User::where('name', 'LIKE', '%' . $senderName . '%')
+                        ->orWhere('name', 'LIKE', '%' . explode(' ', $senderName)[0] . '%')
+                        ->get();
+
+        if ($similarNames->count() > 0) {
+            $names = $similarNames->pluck('name')->implode(', ');
+            Log::info("⚠️ Noms similaires trouvés pour '{$senderName}': {$names}");
+        }
+
+        return ['exists' => false];
+    }
+
+    /**
      * ====================================================================
      * MÉTHODES PDF ET DOCUMENTS
      * ====================================================================
@@ -1612,6 +1688,53 @@ class ShipmentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Envoie une notification email automatique au client
+     */
+    public function sendEmailNotification(Request $request)
+    {
+        try {
+            $shipmentData = $request->input('shipment_data');
+
+            // Vérifier que les données sont présentes
+            if (!$shipmentData || !isset($shipmentData['user']['email'])) {
+                return response()->json(['success' => false, 'message' => 'Données manquantes']);
+            }
+
+            // Préparer les données pour l'email
+            $emailData = [
+                'user_name' => $shipmentData['user']['name'],
+                'tracking_number' => $shipmentData['package']['tracking'],
+                'weight' => $shipmentData['package']['weight'],
+                'price' => $shipmentData['package']['price'],
+                'destination' => $shipmentData['package']['destination'],
+                'description' => $shipmentData['package']['description'],
+                'recipient_name' => $shipmentData['recipient']['name'],
+                'recipient_phone' => $shipmentData['recipient']['phone'],
+                'recipient_email' => $shipmentData['recipient']['email'] ?? null,
+                'user_email' => $shipmentData['user']['email'],
+                'user_phone' => $shipmentData['user']['phone'] ?? null,
+                'new_password' => $shipmentData['user']['password'] ?? null,
+                'created_at' => now()->format('d/m/Y à H:i'),
+                'site_url' => url('/'),
+            ];
+
+            // Envoyer l'email
+            Mail::send('emails.shipment-confirmation', $emailData, function ($message) use ($emailData) {
+                $message->to($emailData['user_email'], $emailData['user_name'])
+                        ->subject('Confirmation d\'expédition - ' . $emailData['tracking_number'])
+                        ->from(config('mail.from.address'), config('mail.from.name'));
+            });
+
+            return response()->json(['success' => true, 'message' => 'Email envoyé avec succès']);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi email automatique: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Erreur lors de l\'envoi']);
+        }
+    }
+
 
     /**
      * ====================================================================

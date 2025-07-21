@@ -171,7 +171,6 @@
                                     </button>
                                 </div>
                             </div>
-
                             <!-- Étapes du formulaire -->
                             <div class="p-6 space-y-6">
                                 <!-- Étape 1: Informations Expéditeur -->
@@ -188,26 +187,86 @@
                                             </span>
                                         </div>
 
+                                        {{-- // Message d'information --}}
                                         <div class="p-4 bg-blue-50 rounded-xl text-sm text-blue-800 mb-4">
                                             <div class="flex items-start">
                                                 <i class="fas fa-info-circle mt-0.5 mr-2"></i>
                                                 <div>
                                                     <p class="font-medium mb-1">Informations importantes :</p>
                                                     <ul class="list-disc ml-4 space-y-1">
-                                                        <li>Le numéro de téléphone doit être au format international pour WhatsApp (ex: +33612345678)</li>
+                                                        <li>Le numéro de téléphone doit être au format international
+                                                            pour WhatsApp (ex: +33612345678)</li>
                                                         <li>Un email DSF sera automatiquement généré pour le client</li>
-                                                        <li>L'email de notification vous permettra de recevoir une copie des informations</li>
+                                                        <li>L'email de notification vous permettra de recevoir une copie
+                                                            des informations</li>
                                                     </ul>
                                                 </div>
                                             </div>
                                         </div>
+                                        <!-- ✅ NOUVEAU : Section d'alerte pour les doublons -->
+                                        @if ($errors->has('phone') && str_contains($errors->first('phone'), 'déjà utilisé'))
+                                            <div
+                                                class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 mb-4">
+                                                <div class="flex items-start">
+                                                    <i
+                                                        class="fas fa-exclamation-triangle mt-0.5 mr-2 text-red-500"></i>
+                                                    <div>
+                                                        <p class="font-medium mb-1">Client existant détecté !</p>
+                                                        <p>{{ $errors->first('phone') }}</p>
+                                                        <a href="{{ route('admin.shipments.create-existing') }}"
+                                                            class="inline-flex items-center mt-2 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs">
+                                                            <i class="fas fa-arrow-right mr-1"></i>
+                                                            Utiliser le formulaire "Client existant"
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($errors->has('notification_email') && str_contains($errors->first('notification_email'), 'déjà utilisé'))
+                                            <div
+                                                class="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800 mb-4">
+                                                <div class="flex items-start">
+                                                    <i
+                                                        class="fas fa-exclamation-triangle mt-0.5 mr-2 text-red-500"></i>
+                                                    <div>
+                                                        <p class="font-medium mb-1">Email déjà utilisé !</p>
+                                                        <p>{{ $errors->first('notification_email') }}</p>
+                                                        <a href="{{ route('admin.shipments.create-existing') }}"
+                                                            class="inline-flex items-center mt-2 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs">
+                                                            <i class="fas fa-arrow-right mr-1"></i>
+                                                            Utiliser le formulaire "Client existant"
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($errors->has('duplicate_user'))
+                                            <div
+                                                class="p-4 bg-orange-50 border border-orange-200 rounded-xl text-sm text-orange-800 mb-4">
+                                                <div class="flex items-start">
+                                                    <i class="fas fa-user-check mt-0.5 mr-2 text-orange-500"></i>
+                                                    <div>
+                                                        <p class="font-medium mb-1">Attention !</p>
+                                                        <p>{{ $errors->first('duplicate_user') }}</p>
+                                                        <a href="{{ route('admin.shipments.create-existing') }}"
+                                                            class="inline-flex items-center mt-2 px-3 py-1.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-xs">
+                                                            <i class="fas fa-search mr-1"></i>
+                                                            Rechercher le client existant
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <!-- ✅ FIN de la section d'alerte -->
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <!-- Nom complet -->
                                             <div class="md:col-span-2">
                                                 <label for="sender_name"
-                                                    class="block text-sm font-medium text-gray-700">Nom complet de l'expéditeur <span
-                                                        class="text-red-500">*</span></label>
+                                                    class="block text-sm font-medium text-gray-700">Nom complet de
+                                                    l'expéditeur <span class="text-red-500">*</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <div
                                                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -243,7 +302,8 @@
                                                         <!-- Validation dynamique par JS -->
                                                     </div>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code pays)</p>
+                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code
+                                                    pays)</p>
                                                 @error('phone')
                                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                                 @enderror
@@ -252,19 +312,22 @@
                                             <!-- Email de notification (optionnel) -->
                                             <div>
                                                 <label for="notification_email"
-                                                    class="block text-sm font-medium text-gray-700">Email de notification
+                                                    class="block text-sm font-medium text-gray-700">Email de
+                                                    notification
                                                     <span class="text-gray-500">(optionnel)</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <div
                                                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                         <i class="fas fa-envelope text-gray-400"></i>
                                                     </div>
-                                                    <input type="email" id="notification_email" name="notification_email"
+                                                    <input type="email" id="notification_email"
+                                                        name="notification_email"
                                                         value="{{ old('notification_email') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="jean.dupont@example.com">
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500">Recevra une copie des informations du colis</p>
+                                                <p class="mt-1 text-xs text-gray-500">Recevra une copie des
+                                                    informations du colis</p>
                                                 @error('notification_email')
                                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                                 @enderror
@@ -299,15 +362,16 @@
                                         <div class="p-4 bg-blue-50 rounded-xl text-sm text-blue-800 mb-4">
                                             <div class="flex items-start">
                                                 <i class="fas fa-info-circle mt-0.5 mr-2"></i>
-                                                <p>Le destinataire recevra une notification WhatsApp et par email (si fourni) avec le numéro de suivi.</p>
+                                                <p>Le destinataire recevra une notification WhatsApp et par email (si
+                                                    fourni) avec le numéro de suivi.</p>
                                             </div>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <label for="recipient_name"
-                                                    class="block text-sm font-medium text-gray-700">Nom complet du destinataire <span
-                                                        class="text-red-500">*</span></label>
+                                                    class="block text-sm font-medium text-gray-700">Nom complet du
+                                                    destinataire <span class="text-red-500">*</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <div
                                                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -341,7 +405,8 @@
                                                         <!-- Validation dynamique par JS -->
                                                     </div>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code pays)</p>
+                                                <p class="mt-1 text-xs text-gray-500">Format: +33612345678 (avec code
+                                                    pays)</p>
                                                 @error('recipient_phone')
                                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                                 @enderror
@@ -360,7 +425,8 @@
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="marie.martin@example.com">
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500">Le destinataire recevra une notification par email</p>
+                                                <p class="mt-1 text-xs text-gray-500">Le destinataire recevra une
+                                                    notification par email</p>
                                                 @error('recipient_email')
                                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                                 @enderror
@@ -382,8 +448,7 @@
                                         </button>
                                     </div>
                                 </div>
-
-                                <!-- Étape 3: Détails du Colis -->
+                                <!-- Étape 3: Détails du Colis AVEC CAMÉRA -->
                                 <div class="form-step" data-step="3">
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
@@ -400,22 +465,25 @@
                                         <div class="p-4 bg-orange-50 rounded-xl text-sm text-orange-800 mb-4">
                                             <div class="flex items-start">
                                                 <i class="fas fa-exclamation-triangle mt-0.5 mr-2"></i>
-                                                <p><strong>Important :</strong> Au moins une image ou une vidéo du colis est obligatoire pour la création.</p>
+                                                <p><strong>Important :</strong> Au moins une image ou une vidéo du colis
+                                                    est obligatoire pour la création.</p>
                                             </div>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <!-- Poids avec calculateur -->
                                             <div>
                                                 <label for="weight"
-                                                    class="block text-sm font-medium text-gray-700">Poids (kg) <span
-                                                        class="text-red-500">*</span></label>
+                                                    class="block text-sm font-medium text-gray-700">Poids réel (kg)
+                                                    <span class="text-red-500">*</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
                                                     <div
                                                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                         <i class="fas fa-weight-hanging text-gray-400"></i>
                                                     </div>
                                                     <input type="number" step="0.1" min="0.1"
-                                                        id="weight" name="weight" required value="{{ old('weight') }}"
+                                                        id="weight" name="weight" required
+                                                        value="{{ old('weight') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="5.0">
                                                     <div
@@ -423,10 +491,23 @@
                                                         <span class="text-gray-500 text-sm">kg</span>
                                                     </div>
                                                 </div>
+                                                <!-- Affichage du poids facturé -->
+                                                <div id="billed-weight-display" class="mt-2 hidden">
+                                                    <div class="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                                                        <div class="flex items-center justify-between text-sm">
+                                                            <span class="text-blue-700">Poids facturé :</span>
+                                                            <span class="font-semibold text-blue-800"
+                                                                id="billed-weight-value">0 kg</span>
+                                                        </div>
+                                                        <p class="text-xs text-blue-600 mt-1">Calculé selon notre
+                                                            barème de transport</p>
+                                                    </div>
+                                                </div>
                                                 @error('weight')
                                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
+
                                             <div>
                                                 <label for="price"
                                                     class="block text-sm font-medium text-gray-700">Prix (€) <span
@@ -437,7 +518,8 @@
                                                         <i class="fas fa-euro-sign text-gray-400"></i>
                                                     </div>
                                                     <input type="number" step="0.01" min="0.01"
-                                                        id="price" name="price" required value="{{ old('price') }}"
+                                                        id="price" name="price" required
+                                                        value="{{ old('price') }}"
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="49.99">
                                                     <div
@@ -455,92 +537,117 @@
                                                     class="block text-sm font-medium text-gray-700">Description du
                                                     colis <span class="text-red-500">*</span></label>
                                                 <div class="mt-1 relative rounded-xl shadow-sm">
-                                                    <textarea id="description_colis" name="description_colis" rows="3" required
+                                                    <textarea id="description_colis" name="description_colis" rows="3" required maxlength="500"
                                                         class="w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]"
                                                         placeholder="Décrivez le contenu du colis...">{{ old('description_colis') }}</textarea>
                                                 </div>
                                                 <div class="flex justify-between mt-1">
                                                     <p class="text-xs text-gray-500">Soyez précis pour faciliter le
                                                         dédouanement</p>
-                                                    <span id="description-character-count"
-                                                        class="text-xs text-gray-500">0/500</span>
+                                                    <span id="char-count" class="text-xs text-gray-500">0/500</span>
                                                 </div>
                                                 @error('description_colis')
                                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
 
-                                            <!-- Section Upload d'Images -->
+                                            <!-- Section Médias AMÉLIORÉE avec caméra -->
                                             <div class="md:col-span-2">
-                                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                                <label class="block text-sm font-medium text-gray-700 mb-4">
                                                     <i class="fas fa-camera mr-2 text-[#0077be]"></i>
-                                                    Photos du colis <span class="text-red-500">*</span>
+                                                    Photos et Vidéos du colis <span class="text-red-500">*</span>
                                                 </label>
 
-                                                <!-- Zone de drop pour les images -->
-                                                <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                                                    id="image-drop-zone">
+                                                <!-- Zone de médias avec drag & drop améliorée -->
+                                                <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50 hover:bg-gray-100 transition-colors duration-200 media-required"
+                                                    id="media-drop-zone">
                                                     <div class="text-center">
                                                         <i
                                                             class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
-                                                        <p class="text-sm text-gray-600 mb-2">Glissez-déposez vos
-                                                            images ici ou</p>
-                                                        <button type="button" id="select-images-btn"
-                                                            class="inline-flex items-center px-4 py-2 bg-[#0077be] text-white rounded-lg hover:bg-[#005c91] transition-colors">
-                                                            <i class="fas fa-camera mr-2"></i>
-                                                            Prendre/Choisir des photos
-                                                        </button>
+                                                        <p class="text-sm text-gray-600 mb-4">Glissez-déposez vos
+                                                            fichiers ici ou utilisez les boutons ci-dessous</p>
+
+                                                        <!-- Boutons d'action médias -->
+                                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                                            <button type="button" id="take-photo-btn"
+                                                                class="flex flex-col items-center p-3 bg-[#0077be] text-white rounded-lg hover:bg-[#005c91] transition-colors">
+                                                                <i class="fas fa-camera text-lg mb-1"></i>
+                                                                <span class="text-xs">Prendre Photo</span>
+                                                            </button>
+
+                                                            <button type="button" id="record-video-btn"
+                                                                class="flex flex-col items-center p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                                                                <i class="fas fa-video text-lg mb-1"></i>
+                                                                <span class="text-xs">Filmer</span>
+                                                            </button>
+
+                                                            <button type="button" id="select-images-btn"
+                                                                class="flex flex-col items-center p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                                                                <i class="fas fa-image text-lg mb-1"></i>
+                                                                <span class="text-xs">Choisir Images</span>
+                                                            </button>
+
+                                                            <button type="button" id="select-videos-btn"
+                                                                class="flex flex-col items-center p-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+                                                                <i class="fas fa-file-video text-lg mb-1"></i>
+                                                                <span class="text-xs">Choisir Vidéos</span>
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Inputs cachés -->
                                                         <input type="file" id="images-input" name="images[]"
                                                             multiple accept="image/*" capture="environment"
                                                             class="hidden">
-                                                        <p class="text-xs text-gray-500 mt-2">JPEG, PNG, JPG, GIF
-                                                            jusqu'à 10MB chacune</p>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Prévisualisation des images -->
-                                                <div id="image-preview"
-                                                    class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 hidden">
-                                                </div>
-                                                @error('images')
-                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                                @enderror
-                                                @error('media')
-                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                                @enderror
-                                            </div>
-
-                                            <!-- Section Upload de Vidéos -->
-                                            <div class="md:col-span-2">
-                                                <label class="block text-sm font-medium text-gray-700 mb-3">
-                                                    <i class="fas fa-video mr-2 text-[#0077be]"></i>
-                                                    Vidéos du colis <span class="text-gray-500">(optionnel)</span>
-                                                </label>
-
-                                                <!-- Zone de drop pour les vidéos -->
-                                                <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
-                                                    id="video-drop-zone">
-                                                    <div class="text-center">
-                                                        <i class="fas fa-video text-4xl text-gray-400 mb-4"></i>
-                                                        <p class="text-sm text-gray-600 mb-2">Glissez-déposez vos
-                                                            vidéos ici ou</p>
-                                                        <button type="button" id="select-videos-btn"
-                                                            class="inline-flex items-center px-4 py-2 bg-[#0077be] text-white rounded-lg hover:bg-[#005c91] transition-colors">
-                                                            <i class="fas fa-video mr-2"></i>
-                                                            Filmer/Choisir des vidéos
-                                                        </button>
                                                         <input type="file" id="videos-input" name="videos[]"
                                                             multiple accept="video/*" capture="environment"
                                                             class="hidden">
-                                                        <p class="text-xs text-gray-500 mt-2">MP4, AVI, MOV, WMV
-                                                            jusqu'à 10MB chacune</p>
+
+                                                        <p class="text-xs text-gray-500">
+                                                            <strong>Images:</strong> JPEG, PNG, JPG, GIF (max 10MB
+                                                            chacune) •
+                                                            <strong>Vidéos:</strong> MP4, AVI, MOV, WebM (max 50MB
+                                                            chacune)
+                                                        </p>
                                                     </div>
                                                 </div>
 
-                                                <!-- Prévisualisation des vidéos -->
-                                                <div id="video-preview"
-                                                    class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 hidden"></div>
+                                                <!-- Sections de prévisualisation -->
+                                                <div id="images-section" class="mt-6 hidden">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <h4 class="font-medium text-gray-700 flex items-center">
+                                                            <i class="fas fa-images text-[#0077be] mr-2"></i>
+                                                            Images sélectionnées
+                                                            <span id="images-count"
+                                                                class="ml-2 px-2 py-1 bg-[#0077be] text-white text-xs rounded-full">0</span>
+                                                        </h4>
+                                                        <span class="text-xs text-gray-500">Max 10 images</span>
+                                                    </div>
+                                                    <div id="image-preview"
+                                                        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                    </div>
+                                                </div>
+
+                                                <div id="videos-section" class="mt-6 hidden">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <h4 class="font-medium text-gray-700 flex items-center">
+                                                            <i class="fas fa-video text-red-500 mr-2"></i>
+                                                            Vidéos sélectionnées
+                                                            <span id="videos-count"
+                                                                class="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">0</span>
+                                                        </h4>
+                                                        <span class="text-xs text-gray-500">Max 5 vidéos</span>
+                                                    </div>
+                                                    <div id="video-preview"
+                                                        class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+                                                </div>
+
+                                                @error('images')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
                                                 @error('videos')
+                                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                                @enderror
+                                                @error('media')
                                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                                 @enderror
                                             </div>
@@ -579,6 +686,103 @@
                                     </div>
                                 </div>
 
+                                <!-- Modaux pour la caméra -->
+                                <!-- Modal Caméra Photo -->
+                                <div id="camera-modal"
+                                    class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+                                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+                                        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                                            <h3 class="font-semibold text-gray-800">Prendre une photo</h3>
+                                            <button type="button" id="close-camera-btn"
+                                                class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-4">
+                                            <!-- Loading spinner -->
+                                            <div id="camera-loading" class="text-center py-8 hidden">
+                                                <div
+                                                    class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0077be]">
+                                                </div>
+                                                <p class="mt-2 text-gray-600">Accès à la caméra...</p>
+                                            </div>
+
+                                            <!-- Caméra -->
+                                            <div class="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                                                <video id="camera-video" autoplay muted playsinline
+                                                    class="w-full h-full object-cover"></video>
+                                                <canvas id="camera-canvas" class="hidden"></canvas>
+                                            </div>
+
+                                            <!-- Contrôles -->
+                                            <div class="flex justify-center space-x-4 mt-4">
+                                                <button type="button" id="switch-camera-btn"
+                                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                                                    <i class="fas fa-sync-alt mr-2"></i>Changer
+                                                </button>
+                                                <button type="button" id="capture-photo-btn"
+                                                    class="px-6 py-2 bg-[#0077be] text-white rounded-lg hover:bg-[#005c91] transition-colors">
+                                                    <i class="fas fa-camera mr-2"></i>Capturer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Modal Caméra Vidéo -->
+                                <div id="video-modal"
+                                    class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+                                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+                                        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                                            <h3 class="font-semibold text-gray-800">Enregistrer une vidéo</h3>
+                                            <button type="button" id="close-video-btn"
+                                                class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                        <div class="p-4">
+                                            <!-- Loading spinner -->
+                                            <div id="video-loading" class="text-center py-8 hidden">
+                                                <div
+                                                    class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-500">
+                                                </div>
+                                                <p class="mt-2 text-gray-600">Accès à la caméra...</p>
+                                            </div>
+
+                                            <!-- Caméra vidéo -->
+                                            <div class="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                                                <video id="video-camera" autoplay muted playsinline
+                                                    class="w-full h-full object-cover"></video>
+
+                                                <!-- Indicateur d'enregistrement -->
+                                                <div id="recording-indicator" class="absolute top-4 left-4 hidden">
+                                                    <div
+                                                        class="flex items-center space-x-2 bg-red-500 text-white px-3 py-1 rounded-full">
+                                                        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                                        <span class="text-sm font-medium">REC</span>
+                                                        <span id="recording-time" class="text-sm">00:00</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Contrôles vidéo -->
+                                            <div class="flex justify-center space-x-4 mt-4">
+                                                <button type="button" id="switch-video-camera-btn"
+                                                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                                                    <i class="fas fa-sync-alt mr-2"></i>Changer
+                                                </button>
+                                                <button type="button" id="start-recording-btn"
+                                                    class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                                                    <i class="fas fa-circle mr-2"></i>Démarrer
+                                                </button>
+                                                <button type="button" id="stop-recording-btn"
+                                                    class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors hidden">
+                                                    <i class="fas fa-stop mr-2"></i>Arrêter
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!-- Étape 4: Destination -->
                                 <div class="form-step" data-step="4">
                                     <div class="space-y-4">
@@ -606,9 +810,15 @@
                                                     <select id="country" name="country" required
                                                         class="pl-10 w-full rounded-xl border-2 border-gray-200 focus:border-[#0077be] focus:ring-1 focus:ring-[#0077be]">
                                                         <option value="">Sélectionnez un pays</option>
-                                                        <option value="France" {{ old('country') == 'France' ? 'selected' : '' }}>France</option>
-                                                        <option value="Cameroun" {{ old('country') == 'Cameroun' ? 'selected' : '' }}>Cameroun</option>
-                                                        <option value="Belgique" {{ old('country') == 'Belgique' ? 'selected' : '' }}>Belgique</option>
+                                                        <option value="France"
+                                                            {{ old('country') == 'France' ? 'selected' : '' }}>France
+                                                        </option>
+                                                        <option value="Cameroun"
+                                                            {{ old('country') == 'Cameroun' ? 'selected' : '' }}>
+                                                            Cameroun</option>
+                                                        <option value="Belgique"
+                                                            {{ old('country') == 'Belgique' ? 'selected' : '' }}>
+                                                            Belgique</option>
                                                     </select>
                                                 </div>
                                                 @error('country')
@@ -653,13 +863,13 @@
                                             </div>
 
                                             <div class="md:col-span-2">
-                                                <div id="service-point-container"
+                                                <div id="service-points-container"
                                                     class="p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 space-y-2 hidden">
                                                     <h4 class="font-medium text-gray-700 flex items-center">
                                                         <i class="fas fa-map-pin text-[#0077be] mr-2"></i>
-                                                        Point de service disponible
+                                                        Points de service disponibles
                                                     </h4>
-                                                    <div id="service-point-list" class="text-sm text-gray-600">
+                                                    <div id="service-points-list" class="text-sm text-gray-600">
                                                         <!-- Populated by JS -->
                                                     </div>
                                                 </div>
@@ -674,10 +884,16 @@
                                             <i class="fas fa-arrow-left mr-2"></i>
                                             Précédent
                                         </button>
-                                        <button type="submit"
-                                            class="px-6 py-2.5 bg-[#0077be] hover:bg-[#005c91] text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center">
-                                            <i class="fas fa-paper-plane mr-2"></i>
-                                            Créer le colis
+                                        <button type="submit" id="submit_button" disabled
+                                            class="px-6 py-2.5 bg-[#0077be] hover:bg-[#005c91] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center">
+                                            <span id="submit-text">
+                                                <i class="fas fa-paper-plane mr-2" id="submit-icon"></i>
+                                                Créer le colis
+                                            </span>
+                                            <div id="loading-spinner" class="hidden ml-2">
+                                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white">
+                                                </div>
+                                            </div>
                                         </button>
                                     </div>
                                 </div>
@@ -706,6 +922,45 @@
                             <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
                                 <span class="text-gray-600">Destination</span>
                                 <span class="font-medium text-gray-800" id="summary-destination">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculateur de prix AMÉLIORÉ -->
+                    <div class="bg-white rounded-2xl shadow-lg p-5">
+                        <div class="flex items-center space-x-3 text-[#0077be] mb-4">
+                            <div class="p-2 bg-blue-100 rounded-full">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <h3 class="text-lg font-bold">Calculateur</h3>
+                        </div>
+
+                        <div id="pricing-calculator" class="space-y-4">
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="text-gray-700">Poids réel</span>
+                                <span class="font-medium" id="calc-weight">0 kg</span>
+                            </div>
+
+                            <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span class="text-blue-700">Poids facturé</span>
+                                <span class="font-medium text-blue-800" id="calc-billed-weight">0 kg</span>
+                            </div>
+
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="text-gray-700">Prix de base</span>
+                                <span class="font-medium" id="calc-base-price">0.00 €</span>
+                            </div>
+
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="text-gray-700">Assurance</span>
+                                <span class="font-medium" id="calc-insurance">0.00 €</span>
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-3 mt-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium text-gray-700">Total estimé</span>
+                                    <span class="text-lg font-bold text-[#0077be]" id="calc-total">0.00 €</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -793,49 +1048,224 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Calculateur de prix -->
-                    <div class="bg-white rounded-2xl shadow-lg p-5 hidden lg:block">
-                        <div class="flex items-center space-x-3 text-[#0077be] mb-4">
-                            <div class="p-2 bg-blue-100 rounded-full">
-                                <i class="fas fa-calculator"></i>
-                            </div>
-                            <h3 class="text-lg font-bold">Estimation</h3>
-                        </div>
-
-                        <div id="pricing-calculator" class="space-y-4">
-                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                <span class="text-gray-700">Poids</span>
-                                <span class="font-medium" id="calc-weight">0 kg</span>
-                            </div>
-
-                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                <span class="text-gray-700">Prix de base</span>
-                                <span class="font-medium" id="calc-base-price">0.00 €</span>
-                            </div>
-
-                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                <span class="text-gray-700">Assurance</span>
-                                <span class="font-medium" id="calc-insurance">0.00 €</span>
-                            </div>
-
-                            <div class="border-t border-gray-200 pt-3 mt-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-medium text-gray-700">Total estimé</span>
-                                    <span class="text-lg font-bold text-[#0077be]" id="calc-total">0.00 €</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts améliorés -->
+    <!-- SCRIPTS COMPLETS AVEC CAMÉRA ET CALCULATEUR -->
+    <style>
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .animate-shake {
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .media-counter {
+            @apply inline-flex items-center justify-center;
+        }
+
+        .media-counter.warning {
+            @apply bg-orange-500 text-white;
+        }
+
+        .media-counter.danger {
+            @apply bg-red-500 text-white animate-pulse;
+        }
+
+        .media-required {
+            @apply border-red-300 bg-red-50;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification {
+            @apply fixed top-4 right-4 z-50 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300;
+        }
+
+        .notification.show {
+            @apply translate-x-0;
+        }
+
+        .notification.success {
+            @apply bg-green-500;
+        }
+
+        .notification.error {
+            @apply bg-red-500;
+        }
+
+        .notification.info {
+            @apply bg-blue-500;
+        }
+    </style>
+    <!-- Script JavaScript Complet avec Caméra, Calculateur et toutes les fonctionnalités -->
     <script>
+        // Variables globales pour la gestion des médias et de la caméra
+        let currentStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let currentFacingMode = 'environment';
+        let recordingInterval = null;
+        let recordingStartTime = null;
+
+        // Variables pour les médias sélectionnés
+        window.selectedImages = [];
+        window.selectedVideos = [];
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Navigation multi-étapes
+            // Vérifier la disponibilité de la caméra
+            checkCameraAvailability();
+
+            // Initialisation des gestionnaires d'événements
+            initializeEventListeners();
+            initializeMediaHandlers();
+            initializeFormSteps();
+            initializeFieldValidation();
+            initializePricingCalculator();
+
+            // Initialisation finale
+            setTimeout(finalizeInitialization, 100);
+        });
+
+        // Vérification des formats vidéo supportés
+        function checkVideoFormatsSupport() {
+            const formats = [
+                'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
+                'video/mp4; codecs="avc1.42E01E"',
+                'video/mp4',
+                'video/webm; codecs="vp9, opus"',
+                'video/webm; codecs="vp8, opus"',
+                'video/webm'
+            ];
+
+            console.log('=== Support des formats vidéo ===');
+            formats.forEach(format => {
+                const supported = MediaRecorder.isTypeSupported(format);
+                console.log(`${format}: ${supported ? '✅' : '❌'}`);
+            });
+        }
+
+        // Fonction pour vérifier la disponibilité de la caméra
+        function checkCameraAvailability() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                const takePhotoBtn = document.getElementById('take-photo-btn');
+                const recordVideoBtn = document.getElementById('record-video-btn');
+
+                if (takePhotoBtn) {
+                    takePhotoBtn.disabled = true;
+                    takePhotoBtn.innerHTML =
+                        '<i class="fas fa-camera-slash text-lg mb-1"></i><span class="text-xs">Non disponible</span>';
+                    takePhotoBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+
+                if (recordVideoBtn) {
+                    recordVideoBtn.disabled = true;
+                    recordVideoBtn.innerHTML =
+                        '<i class="fas fa-video-slash text-lg mb-1"></i><span class="text-xs">Non disponible</span>';
+                    recordVideoBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                // Vérifier les capacités vidéo
+                setTimeout(checkVideoFormatsSupport, 1000);
+            }
+        }
+
+        // Initialisation des gestionnaires d'événements principaux
+        function initializeEventListeners() {
+            // Validation des numéros de téléphone WhatsApp
+            const phoneInputs = [
+                document.getElementById('phone'),
+                document.getElementById('recipient_phone')
+            ];
+
+            phoneInputs.forEach(input => {
+                if (!input) return;
+
+                input.addEventListener('input', function() {
+                    validateWhatsAppNumber(this);
+                });
+
+                input.addEventListener('blur', function() {
+                    validateWhatsAppNumber(this, true);
+                });
+            });
+
+            // Points de service
+            const countrySelect = document.getElementById('country');
+            const cityInput = document.getElementById('city');
+
+            if (countrySelect && cityInput) {
+                countrySelect.addEventListener('change', updateServicePoints);
+                cityInput.addEventListener('input', handleCityInput);
+                cityInput.addEventListener('change', updateServicePoints);
+
+                // Valeur par défaut pour le pays
+                if (countrySelect.value === '') {
+                    countrySelect.value = 'France';
+                    countrySelect.dispatchEvent(new Event('change'));
+                }
+            }
+
+            // Accordéon articles interdits
+            const forbiddenToggle = document.getElementById('forbidden-toggle');
+            const forbiddenContent = document.getElementById('forbidden-content');
+            const forbiddenIcon = document.getElementById('forbidden-icon');
+
+            if (forbiddenToggle && forbiddenContent && forbiddenIcon) {
+                forbiddenToggle.addEventListener('click', function() {
+                    forbiddenContent.classList.toggle('hidden');
+                    forbiddenIcon.classList.toggle('rotate-180');
+                });
+            }
+        }
+
+        // Initialisation de la navigation multi-étapes
+        function initializeFormSteps() {
             const formSteps = document.querySelectorAll('.form-step');
             const nextButtons = document.querySelectorAll('.next-step');
             const prevButtons = document.querySelectorAll('.prev-step');
@@ -846,7 +1276,7 @@
             // Fonction de mise à jour de la barre de progression
             function updateProgress(step) {
                 const percent = ((step - 1) / (formSteps.length - 1)) * 100;
-                progressBar.style.width = `${percent}%`;
+                if (progressBar) progressBar.style.width = `${percent}%`;
 
                 // Mise à jour des étapes de progression
                 progressSteps.forEach((progStep, idx) => {
@@ -897,6 +1327,7 @@
                 currentStep.style.display = 'block';
 
                 updateProgress(step);
+                updateSummary();
 
                 // Scroll vers le haut sur mobile
                 if (window.innerWidth < 640) {
@@ -918,69 +1349,11 @@
                     const currentStep = parseInt(this.closest('.form-step').dataset.step);
                     const nextStep = currentStep + 1;
 
-                    // Validation simple avant de continuer
-                    const currentFields = this.closest('.form-step').querySelectorAll(
-                        'input[required], select[required], textarea[required]');
-                    let isValid = true;
-
-                    currentFields.forEach(field => {
-                        if (!field.value) {
-                            isValid = false;
-                            field.classList.add('border-red-500');
-
-                            // Animation shake
-                            field.classList.add('animate-shake');
-                            setTimeout(() => {
-                                field.classList.remove('animate-shake');
-                            }, 500);
-
-                            // Message d'erreur
-                            let errorMsg = field.parentNode.querySelector('.error-message');
-                            if (!errorMsg) {
-                                errorMsg = document.createElement('p');
-                                errorMsg.className = 'text-red-500 text-xs mt-1 error-message';
-                                errorMsg.innerText = 'Ce champ est requis';
-                                field.parentNode.appendChild(errorMsg);
-                            }
-                        } else {
-                            field.classList.remove('border-red-500');
-                            const errorMsg = field.parentNode.querySelector('.error-message');
-                            if (errorMsg) errorMsg.remove();
+                    // Validation avant de continuer
+                    if (validateCurrentStep(currentStep)) {
+                        if (nextStep <= formSteps.length) {
+                            showStep(nextStep);
                         }
-                    });
-
-                    // Validation spéciale pour les médias à l'étape 3
-                    if (currentStep === 3) {
-                        const hasImages = document.getElementById('images-input').files.length > 0;
-                        const hasVideos = document.getElementById('videos-input').files.length > 0;
-
-                        if (!hasImages && !hasVideos) {
-                            isValid = false;
-
-                            // Afficher un message d'erreur pour les médias
-                            const imageDropZone = document.getElementById('image-drop-zone');
-                            imageDropZone.classList.add('border-red-500');
-
-                            let mediaError = document.querySelector('.media-error-message');
-                            if (!mediaError) {
-                                mediaError = document.createElement('p');
-                                mediaError.className = 'text-red-500 text-sm mt-2 media-error-message';
-                                mediaError.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Veuillez ajouter au moins une image ou une vidéo du colis.';
-                                imageDropZone.parentNode.appendChild(mediaError);
-                            }
-                        } else {
-                            // Supprimer le message d'erreur des médias s'il existe
-                            const imageDropZone = document.getElementById('image-drop-zone');
-                            imageDropZone.classList.remove('border-red-500');
-
-                            const mediaError = document.querySelector('.media-error-message');
-                            if (mediaError) mediaError.remove();
-                        }
-                    }
-
-                    if (isValid && nextStep <= formSteps.length) {
-                        showStep(nextStep);
-                        updateSummary();
                     }
                 });
             });
@@ -1004,509 +1377,1095 @@
                     showStep(step);
                 });
             });
+        }
 
-            // Validation des numéros de téléphone WhatsApp
-            const phoneInputs = [
-                document.getElementById('phone'),
-                document.getElementById('recipient_phone')
-            ];
+        // Validation d'une étape
+        function validateCurrentStep(step) {
+            const currentFormStep = document.querySelector(`.form-step[data-step="${step}"]`);
+            const requiredFields = currentFormStep.querySelectorAll(
+                'input[required], select[required], textarea[required]');
+            let isValid = true;
 
-            phoneInputs.forEach(input => {
-                if (!input) return;
-
-                input.addEventListener('input', function() {
-                    validateWhatsAppNumber(this);
-                });
-
-                input.addEventListener('blur', function() {
-                    validateWhatsAppNumber(this, true);
-                });
+            requiredFields.forEach(field => {
+                if (!field.value) {
+                    isValid = false;
+                    showFieldError(field, 'Ce champ est requis');
+                } else {
+                    clearFieldError(field);
+                }
             });
 
-            function validateWhatsAppNumber(input, showError = false) {
-                const phoneValidationDiv = input.id === 'phone' ?
-                    document.getElementById('phone-validation') :
-                    document.getElementById('recipient-phone-validation');
-
-                const whatsappRegex = /^\+[0-9]{1,3}[0-9]{6,14}$/;
-
-                if (input.value.trim() === '') {
-                    phoneValidationDiv.innerHTML = '';
-                    return;
-                }
-
-                if (whatsappRegex.test(input.value)) {
-                    phoneValidationDiv.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
-                    input.classList.remove('border-red-500');
-                    input.classList.add('border-green-500');
-
-                    // Supprimer le message d'erreur s'il existe
-                    const errorMsg = input.parentNode.parentNode.querySelector('.error-message');
-                    if (errorMsg) errorMsg.remove();
+            // Validation spéciale pour les médias à l'étape 3
+            if (step === 3) {
+                if (window.selectedImages.length === 0 && window.selectedVideos.length === 0) {
+                    isValid = false;
+                    showMediaError();
                 } else {
-                    phoneValidationDiv.innerHTML = '<i class="fas fa-times-circle text-red-500"></i>';
-                    input.classList.remove('border-green-500');
-
-                    if (showError) {
-                        input.classList.add('border-red-500');
-
-                        // Afficher le message d'erreur s'il n'est pas déjà affiché
-                        let errorMsg = input.parentNode.parentNode.querySelector('.error-message');
-                        if (!errorMsg) {
-                            errorMsg = document.createElement('p');
-                            errorMsg.className = 'text-red-500 text-xs mt-1 error-message';
-                            errorMsg.innerText = 'Format invalide pour WhatsApp. Utilisez le format +33612345678';
-                            input.parentNode.parentNode.appendChild(errorMsg);
-                        }
-                    }
+                    clearMediaError();
                 }
             }
 
-            // Compteur de caractères pour la description
-            const descriptionTextarea = document.getElementById('description_colis');
-            const characterCount = document.getElementById('description-character-count');
+            return isValid;
+        }
 
-            if (descriptionTextarea && characterCount) {
-                descriptionTextarea.addEventListener('input', function() {
-                    const count = this.value.length;
-                    characterCount.textContent = `${count}/500`;
+        // Afficher une erreur de champ
+        function showFieldError(field, message) {
+            field.classList.add('border-red-500');
+            field.classList.add('animate-shake');
+            setTimeout(() => field.classList.remove('animate-shake'), 500);
 
-                    if (count > 500) {
-                        characterCount.classList.add('text-red-500');
-                        characterCount.classList.remove('text-gray-500');
-                        this.classList.add('border-red-500');
-                    } else if (count > 450) {
-                        characterCount.classList.add('text-orange-500');
-                        characterCount.classList.remove('text-gray-500', 'text-red-500');
-                        this.classList.remove('border-red-500');
-                    } else {
-                        characterCount.classList.remove('text-red-500', 'text-orange-500');
-                        characterCount.classList.add('text-gray-500');
-                        this.classList.remove('border-red-500');
-                    }
-                });
+            const parentNode = field.closest('.floating-label') || field.parentNode;
+            let errorMsg = parentNode.querySelector('.error-message');
+
+            if (!errorMsg) {
+                errorMsg = document.createElement('p');
+                errorMsg.className = 'text-red-500 text-xs mt-1 error-message';
+                errorMsg.innerText = message;
+                parentNode.appendChild(errorMsg);
+            }
+        }
+
+        // Supprimer l'erreur d'un champ
+        function clearFieldError(field) {
+            field.classList.remove('border-red-500');
+            const parentNode = field.closest('.floating-label') || field.parentNode;
+            const errorMsg = parentNode.querySelector('.error-message');
+            if (errorMsg) errorMsg.remove();
+        }
+
+        // Afficher erreur médias
+        function showMediaError() {
+            const mediaDropZone = document.getElementById('media-drop-zone');
+            mediaDropZone.classList.add('media-required');
+
+            let mediaError = document.querySelector('.media-error-message');
+            if (!mediaError) {
+                mediaError = document.createElement('p');
+                mediaError.className = 'text-red-500 text-sm mt-2 media-error-message';
+                mediaError.innerHTML =
+                    '<i class="fas fa-exclamation-triangle mr-1"></i>Veuillez ajouter au moins une image ou une vidéo du colis.';
+                mediaDropZone.parentNode.appendChild(mediaError);
+            }
+        }
+
+        // Supprimer erreur médias
+        function clearMediaError() {
+            const mediaDropZone = document.getElementById('media-drop-zone');
+            mediaDropZone.classList.remove('media-required');
+
+            const mediaError = document.querySelector('.media-error-message');
+            if (mediaError) mediaError.remove();
+        }
+
+        // Validation des numéros WhatsApp
+        function validateWhatsAppNumber(input, showError = false) {
+            const phoneValidationDiv = input.id === 'phone' ?
+                document.getElementById('phone-validation') :
+                document.getElementById('recipient-phone-validation');
+
+            const whatsappRegex = /^\+[0-9]{1,3}[0-9]{6,14}$/;
+
+            if (input.value.trim() === '') {
+                phoneValidationDiv.innerHTML = '';
+                return;
             }
 
-            // Points de service
-            const servicePoints = {
-                'France': {
-                    'Paris': ['Gare du Nord', 'Gare de Lyon'],
-                    'Lyon': ['Part-Dieu', 'Perrache']
-                },
-                'Cameroun': {
-                    'Douala': ['Aeroport International de Douala'],
-                    'Yaoundé': ['Aeroport International de Nsimalen']
-                },
-                'Belgique': {
-                    'Bruxelles': ['Gare Centrale', 'Avenue Louise'],
-                    'Liège': ['Guillemins']
-                }
-            };
+            if (whatsappRegex.test(input.value)) {
+                phoneValidationDiv.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+                input.classList.remove('border-red-500');
+                input.classList.add('border-green-500');
+                clearFieldError(input);
+            } else {
+                phoneValidationDiv.innerHTML = '<i class="fas fa-times-circle text-red-500"></i>';
+                input.classList.remove('border-green-500');
 
+                if (showError) {
+                    showFieldError(input, 'Format invalide pour WhatsApp. Utilisez le format +33612345678');
+                }
+            }
+        }
+
+        // Gestion des points de service
+        const servicePoints = {
+            'France': {
+                'Paris': ['Gare du Nord', 'Gare de Lyon', 'République'],
+                // 'Lyon': ['Part-Dieu', 'Perrache', 'Bellecour'],
+                // 'Marseille': ['Gare Saint-Charles', 'Vieux Port']
+            },
+            'Cameroun': {
+                'Douala': ['Aeroport International de Douala', 'Logpom'],
+                'Yaoundé': ['Aeroport International de Nsimalen', 'Centre-ville']
+            },
+            'Belgique': {
+                'Bruxelles': ['Gare Centrale', 'Avenue Louise', 'Grand Place'],
+                'Liège': ['Guillemins', 'Saint-Lambert']
+            }
+        };
+
+        // Mise à jour des points de service
+        function updateServicePoints() {
+            const countrySelect = document.getElementById('country');
+            const servicePointsDiv = document.getElementById('service_points');
+            const servicePointsContainer = document.getElementById('service-points-container');
+            const servicePointsList = document.getElementById('service-points-list');
+
+            if (!countrySelect || !servicePointsDiv) return;
+
+            const country = countrySelect.value;
+
+            // Mise à jour des points de service dans la sidebar
+            if (servicePoints[country]) {
+                servicePointsDiv.innerHTML = Object.entries(servicePoints[country])
+                    .map(([city, points]) => `
+                        <div class="p-3 bg-white/10 rounded-xl">
+                            <h4 class="font-semibold text-[#ffd700] mb-1">${city}</h4>
+                            <div class="text-sm text-white/90">${points.join(', ')}</div>
+                        </div>
+                    `).join('');
+            } else {
+                servicePointsDiv.innerHTML =
+                    '<div class="text-center text-sm text-white/80 py-3"><p>Aucun point de service disponible</p></div>';
+            }
+
+            updateCityServicePoints();
+        }
+
+        function updateCityServicePoints() {
             const countrySelect = document.getElementById('country');
             const cityInput = document.getElementById('city');
-            const servicePointsDiv = document.getElementById('service_points');
-            const servicePointContainer = document.getElementById('service-point-container');
-            const servicePointList = document.getElementById('service-point-list');
+            const servicePointsContainer = document.getElementById('service-points-container');
+            const servicePointsList = document.getElementById('service-points-list');
 
-            if (countrySelect && servicePointsDiv) {
-                countrySelect.addEventListener('change', function() {
-                    const country = this.value;
+            if (!countrySelect || !cityInput || !servicePointsContainer || !servicePointsList) return;
 
-                    // Mise à jour des points de service dans la sidebar
-                    if (servicePoints[country]) {
-                        servicePointsDiv.innerHTML = Object.entries(servicePoints[country])
-                            .map(([city, points]) => `
-                                <div class="p-3 bg-white/10 rounded-xl">
-                                    <h4 class="font-semibold text-[#ffd700] mb-1">${city}</h4>
-                                    <div class="text-sm text-white/90">${points.join(', ')}</div>
-                                </div>
-                            `).join('');
-                    } else {
-                        servicePointsDiv.innerHTML =
-                            '<div class="text-center text-sm text-white/80 py-3"><p>Aucun point de service disponible</p></div>';
-                    }
+            const country = countrySelect.value;
+            const city = cityInput.value.trim();
 
-                    updateCityServicePoints();
-                });
+            if (country && city && servicePoints[country] && servicePoints[country][city]) {
+                const points = servicePoints[country][city];
+                servicePointsList.innerHTML = points.map(point =>
+                    `<div class="flex items-start">
+                        <i class="fas fa-circle text-[#0077be] text-[6px] mt-1.5 mr-1.5"></i>
+                        <span>${point}</span>
+                    </div>`
+                ).join('');
 
-                if (cityInput) {
-                    cityInput.addEventListener('input', updateCityServicePoints);
-                    cityInput.addEventListener('change', updateCityServicePoints);
+                if (servicePointsContainer.classList.contains('hidden')) {
+                    servicePointsContainer.classList.remove('hidden');
+                    servicePointsContainer.classList.add('animate-fade-in');
+                    setTimeout(() => {
+                        servicePointsContainer.classList.remove('animate-fade-in');
+                    }, 300);
                 }
+            } else {
+                servicePointsContainer.classList.add('hidden');
+            }
+        }
 
-                function updateCityServicePoints() {
-                    const country = countrySelect.value;
-                    const city = cityInput.value.trim();
+        // Gestion de l'input ville avec auto-complétion
+        function handleCityInput(e) {
+            const countrySelect = document.getElementById('country');
+            const cityValue = e.target.value.trim();
+            const country = countrySelect?.value;
 
-                    if (servicePointContainer && servicePointList) {
-                        if (country && city && servicePoints[country] && servicePoints[country][city]) {
-                            const points = servicePoints[country][city];
-                            servicePointList.innerHTML = `
-                                <p>Points de service à ${city}:</p>
-                                <ul class="list-disc ml-5 mt-1">
-                                    ${points.map(point => `<li>${point}</li>`).join('')}
-                                </ul>
-                            `;
-                            servicePointContainer.classList.remove('hidden');
-                        } else {
-                            servicePointContainer.classList.add('hidden');
+            if (country && cityValue && servicePoints[country]) {
+                updateCityServicePoints();
+
+                if (cityValue.length >= 2) {
+                    const cityValueLower = cityValue.toLowerCase();
+                    const cities = Object.keys(servicePoints[country]);
+
+                    for (const city of cities) {
+                        if (city.toLowerCase().startsWith(cityValueLower)) {
+                            if (e.inputType !== 'deleteContentBackward' && e.inputType !== 'deleteContentForward') {
+                                e.target.value = city;
+                                e.target.setSelectionRange(cityValue.length, city.length);
+                                break;
+                            }
                         }
                     }
                 }
             }
+        }
 
-            // Mise à jour du résumé mobile
-            function updateSummary() {
-                const senderName = document.getElementById('sender_name').value || '-';
-                const recipientName = document.getElementById('recipient_name').value || '-';
-                const country = document.getElementById('country').value || '';
-                const city = document.getElementById('city').value || '';
+        // Initialisation de la validation des champs
+        function initializeFieldValidation() {
+            // Compteur de caractères pour la description
+            const descriptionColis = document.getElementById('description_colis');
+            const charCount = document.getElementById('char-count');
 
-                const summaryElements = {
-                    'summary-sender': senderName,
-                    'summary-recipient': recipientName,
-                    'summary-destination': country && city ? `${city}, ${country}` : '-'
-                };
+            if (descriptionColis && charCount) {
+                function updateCount() {
+                    const count = descriptionColis.value.length;
+                    charCount.textContent = `${count}/500`;
 
-                Object.entries(summaryElements).forEach(([id, value]) => {
-                    const element = document.getElementById(id);
-                    if (element) element.textContent = value;
-                });
+                    charCount.classList.remove('text-orange-500', 'text-red-500');
+                    if (count > 450) {
+                        charCount.classList.add('text-orange-500');
+                        if (count > 480) {
+                            charCount.classList.add('text-red-500');
+                            charCount.classList.remove('text-orange-500');
+                        }
+                    }
+                }
 
-                // Mise à jour du calculateur de prix
-                updatePricingCalculator();
+                descriptionColis.addEventListener('input', updateCount);
+                updateCount();
             }
 
-            // Calculateur de prix
+            // Formatage des nombres
+            const priceInput = document.getElementById('price');
+            if (priceInput) {
+                priceInput.addEventListener('blur', function() {
+                    if (this.value) {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            this.value = value.toFixed(2);
+                        }
+                    }
+                });
+            }
+
+            // Validation du formulaire final
+            const form = document.getElementById('shipping-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (window.selectedImages.length === 0 && window.selectedVideos.length === 0) {
+                        e.preventDefault();
+                        showNotification('Veuillez ajouter au moins une image ou une vidéo du colis.', 'error');
+                        return false;
+                    }
+
+                    const submitButton = document.getElementById('submit_button');
+                    const submitText = document.getElementById('submit-text');
+                    const submitIcon = document.getElementById('submit-icon');
+                    const loadingSpinner = document.getElementById('loading-spinner');
+
+                    if (submitButton) submitButton.disabled = true;
+                    if (submitText) submitText.innerHTML = 'Création en cours...';
+                    if (submitIcon) submitIcon.classList.add('hidden');
+                    if (loadingSpinner) loadingSpinner.classList.remove('hidden');
+                });
+            }
+        }
+
+        // Calculateur de poids de transport
+        function calculateBilledWeight(actualWeight) {
+            if (actualWeight <= 0) return 0;
+            if (actualWeight <= 1.2) return 1;
+            if (actualWeight <= 2.2) return 2;
+            if (actualWeight <= 3.2) return 3;
+            if (actualWeight <= 4.2) return 4;
+            if (actualWeight <= 5.2) return 5;
+            if (actualWeight <= 6.2) return 6;
+            if (actualWeight <= 7.2) return 7;
+            if (actualWeight <= 8.2) return 8;
+            if (actualWeight <= 9.2) return 9;
+            if (actualWeight <= 10.2) return 10;
+            return Math.ceil(actualWeight - 0.2);
+        }
+
+        // Initialisation du calculateur de prix
+        function initializePricingCalculator() {
             const weightInput = document.getElementById('weight');
             const priceInput = document.getElementById('price');
             const assuranceCheckbox = document.querySelector('input[name="assurance"]');
 
-            function updatePricingCalculator() {
-                const weight = parseFloat(weightInput?.value) || 0;
-                const basePrice = parseFloat(priceInput?.value) || 0;
-                const hasAssurance = assuranceCheckbox?.checked || false;
+            if (weightInput) {
+                weightInput.addEventListener('input', function() {
+                    const actualWeight = parseFloat(this.value);
+                    const billedWeightDisplay = document.getElementById('billed-weight-display');
+                    const billedWeightValue = document.getElementById('billed-weight-value');
 
-                const calcElements = {
-                    'calc-weight': `${weight.toFixed(1)} kg`,
-                    'calc-base-price': `${basePrice.toFixed(2)} €`
-                };
+                    if (!isNaN(actualWeight) && actualWeight > 0) {
+                        const billedWeight = calculateBilledWeight(actualWeight);
+                        if (billedWeightValue) billedWeightValue.textContent = billedWeight + ' kg';
+                        if (billedWeightDisplay) {
+                            billedWeightDisplay.classList.remove('hidden');
+                            billedWeightDisplay.classList.add('animate-fade-in');
+                            setTimeout(() => {
+                                billedWeightDisplay.classList.remove('animate-fade-in');
+                            }, 300);
+                        }
+                    } else {
+                        if (billedWeightDisplay) billedWeightDisplay.classList.add('hidden');
+                    }
 
-                let insuranceAmount = 0;
-                if (hasAssurance && basePrice > 0) {
-                    insuranceAmount = Math.max(5, basePrice * 0.05); // 5€ ou 5% de la valeur
-                }
+                    updatePricingCalculator();
+                });
 
-                calcElements['calc-insurance'] = `${insuranceAmount.toFixed(2)} €`;
-                calcElements['calc-total'] = `${(basePrice + insuranceAmount).toFixed(2)} €`;
-
-                Object.entries(calcElements).forEach(([id, value]) => {
-                    const element = document.getElementById(id);
-                    if (element) element.textContent = value;
+                weightInput.addEventListener('blur', function() {
+                    if (this.value) {
+                        const value = parseFloat(this.value);
+                        if (!isNaN(value)) {
+                            this.value = value.toFixed(1);
+                        }
+                    }
                 });
             }
 
             // Event listeners pour le calculateur
-            if (weightInput) weightInput.addEventListener('input', updatePricingCalculator);
             if (priceInput) priceInput.addEventListener('input', updatePricingCalculator);
             if (assuranceCheckbox) assuranceCheckbox.addEventListener('change', updatePricingCalculator);
+        }
 
-            // Accordéon articles interdits
-            const forbiddenToggle = document.getElementById('forbidden-toggle');
-            const forbiddenContent = document.getElementById('forbidden-content');
-            const forbiddenIcon = document.getElementById('forbidden-icon');
+        // Mise à jour du calculateur de prix
+        function updatePricingCalculator() {
+            const weightInput = document.getElementById('weight');
+            const priceInput = document.getElementById('price');
+            const assuranceCheckbox = document.querySelector('input[name="assurance"]');
 
-            if (forbiddenToggle && forbiddenContent && forbiddenIcon) {
-                forbiddenToggle.addEventListener('click', function() {
-                    forbiddenContent.classList.toggle('hidden');
-                    forbiddenIcon.classList.toggle('rotate-180');
-                });
+            const weight = parseFloat(weightInput?.value) || 0;
+            const basePrice = parseFloat(priceInput?.value) || 0;
+            const hasAssurance = assuranceCheckbox?.checked || false;
+            const billedWeight = calculateBilledWeight(weight);
+
+            const calcElements = {
+                'calc-weight': `${weight.toFixed(1)} kg`,
+                'calc-billed-weight': `${billedWeight} kg`,
+                'calc-base-price': `${basePrice.toFixed(2)} €`
+            };
+
+            let insuranceAmount = 0;
+            if (hasAssurance && basePrice > 0) {
+                insuranceAmount = Math.max(5, basePrice * 0.05); // 5€ ou 5% de la valeur
             }
 
-            // Gestion des médias (images et vidéos)
-            const imageInput = document.getElementById('images-input');
-            const videoInput = document.getElementById('videos-input');
+            calcElements['calc-insurance'] = `${insuranceAmount.toFixed(2)} €`;
+            calcElements['calc-total'] = `${(basePrice + insuranceAmount).toFixed(2)} €`;
+
+            Object.entries(calcElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
+        }
+
+        // Validation du formulaire
+        function validateForm() {
+            const submitButton = document.getElementById('submit_button');
+            const mediaDropZone = document.getElementById('media-drop-zone');
+
+            const hasImages = window.selectedImages.length > 0;
+            const hasVideos = window.selectedVideos.length > 0;
+            const hasMedia = hasImages || hasVideos;
+
+            if (hasMedia) {
+                if (submitButton) submitButton.disabled = false;
+                if (mediaDropZone) mediaDropZone.classList.remove('media-required');
+            } else {
+                if (submitButton) submitButton.disabled = true;
+                if (mediaDropZone) {
+                    mediaDropZone.classList.add('media-required');
+                }
+            }
+        }
+
+        // Mise à jour du résumé mobile
+        function updateSummary() {
+            const senderName = document.getElementById('sender_name')?.value || '-';
+            const recipientName = document.getElementById('recipient_name')?.value || '-';
+            const country = document.getElementById('country')?.value || '';
+            const city = document.getElementById('city')?.value || '';
+
+            const summaryElements = {
+                'summary-sender': senderName,
+                'summary-recipient': recipientName,
+                'summary-destination': country && city ? `${city}, ${country}` : '-'
+            };
+
+            Object.entries(summaryElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
+        }
+
+        // Initialisation des gestionnaires de médias et caméra
+        function initializeMediaHandlers() {
+            const takePhotoBtn = document.getElementById('take-photo-btn');
+            const recordVideoBtn = document.getElementById('record-video-btn');
             const selectImagesBtn = document.getElementById('select-images-btn');
             const selectVideosBtn = document.getElementById('select-videos-btn');
-            const imageDropZone = document.getElementById('image-drop-zone');
-            const videoDropZone = document.getElementById('video-drop-zone');
-            const imagePreview = document.getElementById('image-preview');
-            const videoPreview = document.getElementById('video-preview');
+            const cameraModal = document.getElementById('camera-modal');
+            const videoModal = document.getElementById('video-modal');
+            const closeCameraBtn = document.getElementById('close-camera-btn');
+            const closeVideoBtn = document.getElementById('close-video-btn');
+            const capturePhotoBtn = document.getElementById('capture-photo-btn');
+            const switchCameraBtn = document.getElementById('switch-camera-btn');
+            const switchVideoCameraBtn = document.getElementById('switch-video-camera-btn');
+            const startRecordingBtn = document.getElementById('start-recording-btn');
+            const stopRecordingBtn = document.getElementById('stop-recording-btn');
+            const imageInput = document.getElementById('images-input');
+            const videoInput = document.getElementById('videos-input');
+            const mediaDropZone = document.getElementById('media-drop-zone');
 
-            let selectedImages = [];
-            let selectedVideos = [];
+            // Gestionnaires pour les boutons de caméra
+            takePhotoBtn?.addEventListener('click', async function() {
+                try {
+                    await openCamera();
+                    cameraModal?.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Erreur lors de l\'ouverture de la caméra:', error);
+                    showNotification('Impossible d\'accéder à la caméra. Vérifiez les permissions.', 'error');
+                }
+            });
 
-            // Gestionnaires pour les boutons de sélection
-            if (selectImagesBtn && imageInput) {
-                selectImagesBtn.addEventListener('click', function() {
-                    imageInput.click();
-                });
+            recordVideoBtn?.addEventListener('click', async function() {
+                try {
+                    await openVideoCamera();
+                    videoModal?.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Erreur lors de l\'ouverture de la caméra vidéo:', error);
+                    showNotification('Impossible d\'accéder à la caméra. Vérifiez les permissions.', 'error');
+                }
+            });
 
-                imageInput.addEventListener('change', function(e) {
-                    handleImageFiles(e.target.files);
-                });
-            }
+            // Gestionnaires pour la sélection de fichiers
+            selectImagesBtn?.addEventListener('click', () => imageInput?.click());
+            selectVideosBtn?.addEventListener('click', () => videoInput?.click());
 
-            if (selectVideosBtn && videoInput) {
-                selectVideosBtn.addEventListener('click', function() {
-                    videoInput.click();
-                });
+            imageInput?.addEventListener('change', function(e) {
+                handleImageFiles(Array.from(e.target.files));
+            });
 
-                videoInput.addEventListener('change', function(e) {
-                    handleVideoFiles(e.target.files);
-                });
-            }
+            videoInput?.addEventListener('change', function(e) {
+                handleVideoFiles(Array.from(e.target.files));
+            });
 
-            // Drag & Drop pour les images
-            if (imageDropZone) {
-                imageDropZone.addEventListener('dragover', function(e) {
+            // Gestionnaires pour les modaux
+            closeCameraBtn?.addEventListener('click', function() {
+                closeCamera();
+                cameraModal?.classList.add('hidden');
+            });
+
+            closeVideoBtn?.addEventListener('click', function() {
+                closeVideoCamera();
+                videoModal?.classList.add('hidden');
+            });
+
+            // Gestionnaires pour les actions de caméra
+            capturePhotoBtn?.addEventListener('click', capturePhoto);
+            switchCameraBtn?.addEventListener('click', switchCamera);
+            switchVideoCameraBtn?.addEventListener('click', switchVideoCamera);
+            startRecordingBtn?.addEventListener('click', startRecording);
+            stopRecordingBtn?.addEventListener('click', stopRecording);
+
+            // Gestionnaires de drag & drop
+            if (mediaDropZone) {
+                mediaDropZone.addEventListener('dragover', function(e) {
                     e.preventDefault();
                     this.classList.add('border-[#0077be]', 'bg-blue-50');
                 });
 
-                imageDropZone.addEventListener('dragleave', function(e) {
+                mediaDropZone.addEventListener('dragleave', function(e) {
                     e.preventDefault();
                     this.classList.remove('border-[#0077be]', 'bg-blue-50');
                 });
 
-                imageDropZone.addEventListener('drop', function(e) {
+                mediaDropZone.addEventListener('drop', function(e) {
                     e.preventDefault();
                     this.classList.remove('border-[#0077be]', 'bg-blue-50');
 
-                    const files = Array.from(e.dataTransfer.files).filter(file =>
-                        file.type.startsWith('image/')
-                    );
+                    const files = Array.from(e.dataTransfer.files);
+                    const images = files.filter(file => file.type.startsWith('image/'));
+                    const videos = files.filter(file => file.type.startsWith('video/'));
 
-                    if (files.length > 0) {
-                        handleImageFiles(files);
-                    }
+                    if (images.length > 0) handleImageFiles(images);
+                    if (videos.length > 0) handleVideoFiles(videos);
                 });
             }
 
-            // Drag & Drop pour les vidéos
-            if (videoDropZone) {
-                videoDropZone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('border-[#0077be]', 'bg-blue-50');
-                });
+            // Fermer les modaux en cliquant à l'extérieur
+            cameraModal?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCamera();
+                    this.classList.add('hidden');
+                }
+            });
 
-                videoDropZone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('border-[#0077be]', 'bg-blue-50');
-                });
+            videoModal?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeVideoCamera();
+                    this.classList.add('hidden');
+                }
+            });
+        }
 
-                videoDropZone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('border-[#0077be]', 'bg-blue-50');
+        // Ouvrir la caméra pour photo
+        async function openCamera() {
+            const cameraLoading = document.getElementById('camera-loading');
 
-                    const files = Array.from(e.dataTransfer.files).filter(file =>
-                        file.type.startsWith('video/')
-                    );
+            try {
+                if (cameraLoading) cameraLoading.classList.remove('hidden');
 
-                    if (files.length > 0) {
-                        handleVideoFiles(files);
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: {
+                            ideal: 1280
+                        },
+                        height: {
+                            ideal: 720
+                        }
                     }
-                });
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const cameraVideo = document.getElementById('camera-video');
+                if (cameraVideo) {
+                    cameraVideo.srcObject = currentStream;
+                }
+
+                if (cameraLoading) cameraLoading.classList.add('hidden');
+            } catch (error) {
+                if (cameraLoading) cameraLoading.classList.add('hidden');
+                console.error('Erreur d\'accès à la caméra:', error);
+                throw error;
+            }
+        }
+
+        // Ouvrir la caméra pour vidéo
+        async function openVideoCamera() {
+            const videoLoading = document.getElementById('video-loading');
+
+            try {
+                if (videoLoading) videoLoading.classList.remove('hidden');
+
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: {
+                            ideal: 1280
+                        },
+                        height: {
+                            ideal: 720
+                        }
+                    },
+                    audio: true
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoCameraElement = document.getElementById('video-camera');
+                if (videoCameraElement) {
+                    videoCameraElement.srcObject = currentStream;
+                }
+
+                if (videoLoading) videoLoading.classList.add('hidden');
+            } catch (error) {
+                if (videoLoading) videoLoading.classList.add('hidden');
+                console.error('Erreur d\'accès à la caméra vidéo:', error);
+                throw error;
+            }
+        }
+
+        // Fermer la caméra
+        function closeCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        // Fermer la caméra vidéo
+        function closeVideoCamera() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            resetRecordingUI();
+        }
+
+        // Changer de caméra (photo)
+        async function switchCamera() {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            closeCamera();
+            await openCamera();
+        }
+
+        // Changer de caméra (vidéo)
+        async function switchVideoCamera() {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            closeVideoCamera();
+            await openVideoCamera();
+        }
+
+        // Capturer une photo
+        function capturePhoto() {
+            const cameraVideo = document.getElementById('camera-video');
+            const cameraCanvas = document.getElementById('camera-canvas');
+            const cameraModal = document.getElementById('camera-modal');
+
+            if (!cameraVideo || !cameraCanvas) return;
+
+            const context = cameraCanvas.getContext('2d');
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            context.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+            cameraCanvas.toBlob(function(blob) {
+                if (blob) {
+                    const fileName = `photo_${Date.now()}.jpg`;
+                    const file = new File([blob], fileName, {
+                        type: 'image/jpeg'
+                    });
+
+                    if (window.selectedImages.length < 10) {
+                        window.selectedImages.push(file);
+                        displayImagePreview(file, window.selectedImages.length - 1);
+                        updateImageInput();
+                        updateMediaDisplay();
+                        validateForm();
+
+                        closeCamera();
+                        cameraModal?.classList.add('hidden');
+
+                        showNotification('Photo capturée avec succès !', 'success');
+                    } else {
+                        showNotification('Maximum 10 images autorisées.', 'error');
+                    }
+                }
+            }, 'image/jpeg', 0.8);
+        }
+
+        // Démarrer l'enregistrement vidéo en MP4
+        function startRecording() {
+            if (!currentStream) return;
+
+            recordedChunks = [];
+
+            // Configuration pour MP4 avec priorité sur les codecs compatibles
+            const options = [{
+                    mimeType: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
+                },
+                {
+                    mimeType: 'video/mp4; codecs="avc1.42E01E"'
+                },
+                {
+                    mimeType: 'video/mp4'
+                },
+                {
+                    mimeType: 'video/webm; codecs="vp9, opus"'
+                },
+                {
+                    mimeType: 'video/webm; codecs="vp8, opus"'
+                },
+                {
+                    mimeType: 'video/webm'
+                }
+            ];
+
+            let selectedOption = null;
+
+            for (const option of options) {
+                if (MediaRecorder.isTypeSupported(option.mimeType)) {
+                    selectedOption = option;
+                    console.log('Format vidéo sélectionné:', option.mimeType);
+                    break;
+                }
             }
 
-            // Gestion des fichiers images
-            function handleImageFiles(files) {
-                Array.from(files).forEach(file => {
-                    // Vérification de la taille (10MB max)
-                    if (file.size > 10 * 1024 * 1024) {
-                        alert(`L'image "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
-                        return;
-                    }
-
-                    // Vérification du type
-                    if (!file.type.startsWith('image/')) {
-                        alert(`Le fichier "${file.name}" n'est pas une image valide.`);
-                        return;
-                    }
-
-                    selectedImages.push(file);
-                    displayImagePreview(file, selectedImages.length - 1);
-                });
-
-                updateImageInput();
-                toggleImagePreview();
+            if (!selectedOption) {
+                selectedOption = {};
+                console.warn('Aucun format préféré supporté, utilisation du format par défaut');
             }
 
-            // Gestion des fichiers vidéos
-            function handleVideoFiles(files) {
-                Array.from(files).forEach(file => {
-                    // Vérification de la taille (10MB max)
-                    if (file.size > 10 * 1024 * 1024) {
-                        alert(`La vidéo "${file.name}" est trop volumineuse. Taille maximale : 10MB`);
-                        return;
-                    }
+            try {
+                mediaRecorder = new MediaRecorder(currentStream, selectedOption);
+            } catch (e) {
+                console.error('Erreur MediaRecorder avec options:', e);
+                try {
+                    mediaRecorder = new MediaRecorder(currentStream);
+                    console.log('MediaRecorder créé sans options spécifiques');
+                } catch (e2) {
+                    console.error('Impossible de créer MediaRecorder:', e2);
+                    showNotification('Erreur lors de l\'initialisation de l\'enregistrement', 'error');
+                    return;
+                }
+            }
 
-                    // Vérification du type
-                    if (!file.type.startsWith('video/')) {
-                        alert(`Le fichier "${file.name}" n'est pas une vidéo valide.`);
-                        return;
-                    }
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
 
-                    selectedVideos.push(file);
-                    displayVideoPreview(file, selectedVideos.length - 1);
+            mediaRecorder.onstop = function() {
+                const mimeType = mediaRecorder.mimeType || selectedOption.mimeType || 'video/mp4';
+                let extension = '.mp4';
+                let finalMimeType = 'video/mp4';
+
+                if (mimeType.includes('mp4')) {
+                    extension = '.mp4';
+                    finalMimeType = 'video/mp4';
+                } else if (mimeType.includes('webm')) {
+                    extension = '.webm';
+                    finalMimeType = mimeType;
+                }
+
+                const blob = new Blob(recordedChunks, {
+                    type: finalMimeType
+                });
+                const fileName = `video_${Date.now()}${extension}`;
+                const file = new File([blob], fileName, {
+                    type: finalMimeType
                 });
 
+                processRecordedVideo(file);
+            };
+
+            mediaRecorder.onerror = function(event) {
+                console.error('Erreur MediaRecorder:', event.error);
+                showNotification('Erreur lors de l\'enregistrement: ' + event.error.message, 'error');
+            };
+
+            try {
+                mediaRecorder.start(1000);
+                recordingStartTime = Date.now();
+
+                const startRecordingBtn = document.getElementById('start-recording-btn');
+                const stopRecordingBtn = document.getElementById('stop-recording-btn');
+                const recordingIndicator = document.getElementById('recording-indicator');
+
+                startRecordingBtn?.classList.add('hidden');
+                stopRecordingBtn?.classList.remove('hidden');
+                recordingIndicator?.classList.remove('hidden');
+
+                recordingInterval = setInterval(updateRecordingTime, 1000);
+
+                showNotification('Enregistrement vidéo démarré', 'success');
+            } catch (e) {
+                console.error('Erreur lors du démarrage:', e);
+                showNotification('Impossible de démarrer l\'enregistrement', 'error');
+            }
+        }
+
+        // Traiter la vidéo enregistrée
+        function processRecordedVideo(file) {
+            if (window.selectedVideos.length < 5) {
+                const maxSize = 50 * 1024 * 1024; // 50MB
+                if (file.size > maxSize) {
+                    showNotification('Vidéo trop volumineuse (max 50MB). Réduisez la durée d\'enregistrement.', 'error');
+                    return;
+                }
+
+                window.selectedVideos.push(file);
+                displayVideoPreview(file, window.selectedVideos.length - 1);
                 updateVideoInput();
-                toggleVideoPreview();
-            }
+                updateMediaDisplay();
+                validateForm();
 
-            // Affichage de la prévisualisation d'une image
-            function displayImagePreview(file, index) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'relative group';
-                    previewItem.innerHTML = `
-                        <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
-                            <img src="${e.target.result}" alt="Prévisualisation" class="w-full h-full object-cover">
-                        </div>
-                        <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeImage(${index})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                            ${(file.size / 1024 / 1024).toFixed(1)}MB
-                        </div>
-                    `;
+                closeVideoCamera();
+                const videoModal = document.getElementById('video-modal');
+                videoModal?.classList.add('hidden');
+
+                showNotification('Vidéo enregistrée avec succès !', 'success');
+            } else {
+                showNotification('Maximum 5 vidéos autorisées.', 'error');
+            }
+        }
+
+        // Arrêter l'enregistrement vidéo
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            resetRecordingUI();
+        }
+
+        // Réinitialiser l'interface d'enregistrement
+        function resetRecordingUI() {
+            const startRecordingBtn = document.getElementById('start-recording-btn');
+            const stopRecordingBtn = document.getElementById('stop-recording-btn');
+            const recordingIndicator = document.getElementById('recording-indicator');
+
+            startRecordingBtn?.classList.remove('hidden');
+            stopRecordingBtn?.classList.add('hidden');
+            recordingIndicator?.classList.add('hidden');
+
+            if (recordingInterval) {
+                clearInterval(recordingInterval);
+                recordingInterval = null;
+            }
+            recordingStartTime = null;
+        }
+
+        // Mettre à jour le temps d'enregistrement
+        function updateRecordingTime() {
+            const recordingTime = document.getElementById('recording-time');
+            if (recordingStartTime && recordingTime) {
+                const elapsed = Date.now() - recordingStartTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                recordingTime.textContent = timeString;
+            }
+        }
+
+        // Gestion des fichiers images
+        function handleImageFiles(files) {
+            const maxImages = 10;
+            const maxSize = 10 * 1024 * 1024; // 10MB
+
+            files.forEach(file => {
+                if (window.selectedImages.length >= maxImages) {
+                    showNotification(`Maximum ${maxImages} images autorisées.`, 'error');
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    showNotification(`L'image "${file.name}" est trop volumineuse. Taille maximale : 10MB`,
+                        'error');
+                    return;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    showNotification(`Le fichier "${file.name}" n'est pas une image valide.`, 'error');
+                    return;
+                }
+
+                window.selectedImages.push(file);
+                displayImagePreview(file, window.selectedImages.length - 1);
+            });
+
+            updateImageInput();
+            updateMediaDisplay();
+            validateForm();
+        }
+
+        // Gestion des fichiers vidéos
+        function handleVideoFiles(files) {
+            const maxVideos = 5;
+            const maxSize = 50 * 1024 * 1024; // 50MB
+
+            files.forEach(file => {
+                if (window.selectedVideos.length >= maxVideos) {
+                    showNotification(`Maximum ${maxVideos} vidéos autorisées.`, 'error');
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    showNotification(`La vidéo "${file.name}" est trop volumineuse. Taille maximale : 50MB`,
+                        'error');
+                    return;
+                }
+
+                if (!file.type.startsWith('video/')) {
+                    showNotification(`Le fichier "${file.name}" n'est pas une vidéo valide.`, 'error');
+                    return;
+                }
+
+                window.selectedVideos.push(file);
+                displayVideoPreview(file, window.selectedVideos.length - 1);
+            });
+
+            updateVideoInput();
+            updateMediaDisplay();
+            validateForm();
+        }
+
+        // Afficher la prévisualisation d'une image
+        function displayImagePreview(file, index) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'media-preview-item relative group';
+                previewItem.innerHTML = `
+                    <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                        <img src="${e.target.result}" alt="Prévisualisation" class="w-full h-full object-cover">
+                    </div>
+                    <div class="overlay"></div>
+                    <button type="button" class="delete-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors" onclick="removeImage(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        ${(file.size / 1024 / 1024).toFixed(1)}MB
+                    </div>
+                `;
+                const imagePreview = document.getElementById('image-preview');
+                if (imagePreview) {
                     imagePreview.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
-            }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
 
-            // Affichage de la prévisualisation d'une vidéo
-            function displayVideoPreview(file, index) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'relative group';
-                    previewItem.innerHTML = `
-                        <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
-                            <video src="${e.target.result}" class="w-full h-full object-cover" controls></video>
-                        </div>
-                        <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" onclick="removeVideo(${index})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                            ${(file.size / 1024 / 1024).toFixed(1)}MB
-                        </div>
-                    `;
+        // Afficher la prévisualisation d'une vidéo avec support MP4
+        function displayVideoPreview(file, index) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'media-preview-item relative group';
+
+                const isMP4 = file.type.includes('mp4');
+                const formatIcon = isMP4 ? 'fas fa-film' : 'fas fa-video';
+                const formatLabel = isMP4 ? 'MP4' : file.type.split('/')[1].toUpperCase();
+
+                previewItem.innerHTML = `
+                    <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                        <video src="${e.target.result}" class="w-full h-full object-cover" controls preload="metadata"></video>
+                    </div>
+                    <div class="overlay"></div>
+                    <button type="button" class="delete-btn absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors" onclick="removeVideo(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center">
+                        <i class="${formatIcon} mr-1"></i>
+                        ${formatLabel} • ${(file.size / 1024 / 1024).toFixed(1)}MB
+                    </div>
+                    <div class="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                        <i class="fas fa-video mr-1"></i>
+                        Enregistré
+                    </div>
+                `;
+                const videoPreview = document.getElementById('video-preview');
+                if (videoPreview) {
                     videoPreview.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Mettre à jour l'affichage des médias
+        function updateMediaDisplay() {
+            const imagesSection = document.getElementById('images-section');
+            const videosSection = document.getElementById('videos-section');
+            const imagesCount = document.getElementById('images-count');
+            const videosCount = document.getElementById('videos-count');
+
+            if (imagesCount) {
+                imagesCount.textContent = window.selectedImages.length;
+                imagesCount.className = 'media-counter ml-2 px-2 py-1 bg-[#0077be] text-white text-xs rounded-full';
+                if (window.selectedImages.length >= 8) {
+                    imagesCount.classList.add('warning');
+                }
+                if (window.selectedImages.length >= 10) {
+                    imagesCount.classList.add('danger');
+                    imagesCount.classList.remove('warning');
+                }
             }
 
-            // Mise à jour de l'input des images
-            function updateImageInput() {
+            if (imagesSection) {
+                if (window.selectedImages.length > 0) {
+                    imagesSection.classList.remove('hidden');
+                } else {
+                    imagesSection.classList.add('hidden');
+                }
+            }
+
+            if (videosCount) {
+                videosCount.textContent = window.selectedVideos.length;
+                videosCount.className = 'media-counter ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full';
+                if (window.selectedVideos.length >= 4) {
+                    videosCount.classList.add('warning');
+                }
+                if (window.selectedVideos.length >= 5) {
+                    videosCount.classList.add('danger');
+                    videosCount.classList.remove('warning');
+                }
+            }
+
+            if (videosSection) {
+                if (window.selectedVideos.length > 0) {
+                    videosSection.classList.remove('hidden');
+                } else {
+                    videosSection.classList.add('hidden');
+                }
+            }
+        }
+
+        // Mettre à jour l'input des images
+        function updateImageInput() {
+            const imageInput = document.getElementById('images-input');
+            if (imageInput) {
                 const dt = new DataTransfer();
-                selectedImages.forEach(file => dt.items.add(file));
+                window.selectedImages.forEach(file => dt.items.add(file));
                 imageInput.files = dt.files;
             }
+        }
 
-            // Mise à jour de l'input des vidéos
-            function updateVideoInput() {
+        // Mettre à jour l'input des vidéos
+        function updateVideoInput() {
+            const videoInput = document.getElementById('videos-input');
+            if (videoInput) {
                 const dt = new DataTransfer();
-                selectedVideos.forEach(file => dt.items.add(file));
+                window.selectedVideos.forEach(file => dt.items.add(file));
                 videoInput.files = dt.files;
             }
+        }
 
-            // Affichage/masquage de la prévisualisation des images
-            function toggleImagePreview() {
-                if (selectedImages.length > 0) {
-                    imagePreview.classList.remove('hidden');
-                } else {
-                    imagePreview.classList.add('hidden');
-                }
-            }
-
-            // Affichage/masquage de la prévisualisation des vidéos
-            function toggleVideoPreview() {
-                if (selectedVideos.length > 0) {
-                    videoPreview.classList.remove('hidden');
-                } else {
-                    videoPreview.classList.add('hidden');
-                }
-            }
-
-            // Fonctions globales pour la suppression (accessibles depuis le HTML)
-            window.removeImage = function(index) {
-                selectedImages.splice(index, 1);
+        // Fonctions globales pour la suppression
+        window.removeImage = function(index) {
+            window.selectedImages.splice(index, 1);
+            const imagePreview = document.getElementById('image-preview');
+            if (imagePreview) {
                 imagePreview.innerHTML = '';
-                selectedImages.forEach((file, newIndex) => {
+                window.selectedImages.forEach((file, newIndex) => {
                     displayImagePreview(file, newIndex);
                 });
-                updateImageInput();
-                toggleImagePreview();
-            };
+            }
+            updateImageInput();
+            updateMediaDisplay();
+            validateForm();
+        };
 
-            window.removeVideo = function(index) {
-                selectedVideos.splice(index, 1);
+        window.removeVideo = function(index) {
+            window.selectedVideos.splice(index, 1);
+            const videoPreview = document.getElementById('video-preview');
+            if (videoPreview) {
                 videoPreview.innerHTML = '';
-                selectedVideos.forEach((file, newIndex) => {
+                window.selectedVideos.forEach((file, newIndex) => {
                     displayVideoPreview(file, newIndex);
                 });
-                updateVideoInput();
-                toggleVideoPreview();
-            };
-
-            // Validation avant soumission du formulaire
-            const form = document.getElementById('shipping-form');
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    // Vérifier les tailles de fichiers
-                    for (let file of selectedImages) {
-                        if (file.size > 10 * 1024 * 1024) {
-                            e.preventDefault();
-                            alert('Une ou plusieurs images dépassent la taille maximale de 10MB.');
-                            return;
-                        }
-                    }
-
-                    for (let file of selectedVideos) {
-                        if (file.size > 10 * 1024 * 1024) {
-                            e.preventDefault();
-                            alert('Une ou plusieurs vidéos dépassent la taille maximale de 10MB.');
-                            return;
-                        }
-                    }
-
-                    // Vérifier qu'au moins un média est fourni
-                    if (selectedImages.length === 0 && selectedVideos.length === 0) {
-                        e.preventDefault();
-                        alert('Veuillez ajouter au moins une image ou une vidéo du colis.');
-                        showStep(3); // Retourner à l'étape des médias
-                        return;
-                    }
-                });
             }
+            updateVideoInput();
+            updateMediaDisplay();
+            validateForm();
+        };
 
-            // Animation shake pour les erreurs
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                    20%, 40%, 60%, 80% { transform: translateX(5px); }
-                }
-                .animate-shake {
-                    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-                }
-                .hide-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .hide-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
+        // Fonction pour afficher des notifications
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                    <button type="button" class="ml-4 text-white/80 hover:text-white" onclick="this.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             `;
-            document.head.appendChild(style);
 
-            // Initialisation
-            updateSummary();
-        });
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Initialisation finale
+        function finalizeInitialization() {
+            updateMediaDisplay();
+            validateForm();
+            updatePricingCalculator();
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                console.log('📷 Caméra disponible - Fonctionnalités photo/vidéo activées');
+            } else {
+                console.warn('📷 Caméra non disponible - Seule l\'upload de fichiers est possible');
+            }
+        }
     </script>
 </x-app-layout>
